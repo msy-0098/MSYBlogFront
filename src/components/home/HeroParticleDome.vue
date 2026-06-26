@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
+import {
+  DOME_BASE_Y,
+  PARTICLE_RADIUS,
+  getMouseFollowTarget,
+  getParticleCount
+} from './particleDomeConfig'
+
 const stageRef = ref<HTMLDivElement | null>(null)
 
 let disposeScene = () => {}
@@ -17,19 +24,6 @@ function canUseWebGL() {
   } catch {
     return false
   }
-}
-
-function particleCount(width: number, reducedMotion: boolean) {
-  if (reducedMotion) {
-    return 160
-  }
-  if (width < 640) {
-    return 420
-  }
-  if (width < 1024) {
-    return 720
-  }
-  return 1120
 }
 
 onMounted(async () => {
@@ -74,8 +68,8 @@ onMounted(async () => {
   })
   const dome = new Group()
   const palette = ['#3B82F6', '#EF4444', '#F59E0B', '#8B5CF6', '#06B6D4']
-  const count = particleCount(host.clientWidth || window.innerWidth, prefersReducedMotion)
-  const geometry = new SphereGeometry(0.021, 8, 6)
+  const count = getParticleCount(host.clientWidth || window.innerWidth, prefersReducedMotion)
+  const geometry = new SphereGeometry(PARTICLE_RADIUS, 8, 6)
   const meshCounts = palette.map((_, index) => {
     return Math.floor(count / palette.length) + (index < count % palette.length ? 1 : 0)
   })
@@ -99,7 +93,7 @@ onMounted(async () => {
   host.appendChild(renderer.domElement)
 
   camera.position.set(0, 1.1, 10)
-  dome.position.set(0, -1.4, 0)
+  dome.position.set(0, DOME_BASE_Y, 0)
 
   for (let i = 0; i < count; i += 1) {
     const theta = Math.random() * Math.PI * 2
@@ -129,6 +123,8 @@ onMounted(async () => {
 
   const rotateX = gsap.quickTo(dome.rotation, 'x', { duration: 1.4, ease: 'power3.out' })
   const rotateY = gsap.quickTo(dome.rotation, 'y', { duration: 1.4, ease: 'power3.out' })
+  const moveX = gsap.quickTo(dome.position, 'x', { duration: 1.2, ease: 'power3.out' })
+  const moveY = gsap.quickTo(dome.position, 'y', { duration: 1.2, ease: 'power3.out' })
 
   const resize = () => {
     const width = host.clientWidth || window.innerWidth
@@ -141,13 +137,18 @@ onMounted(async () => {
   const handleMouseMove = (event: MouseEvent) => {
     const mouseX = event.clientX / window.innerWidth - 0.5
     const mouseY = event.clientY / window.innerHeight - 0.5
-    rotateX(mouseY * 0.12)
-    rotateY(mouseX * 0.18)
+    const target = getMouseFollowTarget(mouseX, mouseY)
+    rotateX(target.rotationX)
+    rotateY(target.rotationY)
+    moveX(target.positionX)
+    moveY(target.positionY)
   }
 
   const resetRotation = () => {
     rotateX(0)
     rotateY(0)
+    moveX(0)
+    moveY(DOME_BASE_Y)
   }
 
   let frameId = 0
@@ -174,6 +175,7 @@ onMounted(async () => {
     window.removeEventListener('mousemove', handleMouseMove)
     window.removeEventListener('mouseleave', resetRotation)
     gsap.killTweensOf(dome.rotation)
+    gsap.killTweensOf(dome.position)
     geometry.dispose()
     materials.forEach((material) => {
       material.dispose()
