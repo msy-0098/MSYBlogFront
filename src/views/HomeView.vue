@@ -2,6 +2,10 @@
 import { onMounted, ref } from 'vue'
 
 import { getSiteProfile, type SiteProfile } from '../api/site'
+import CategoryCloud from '../components/home/CategoryCloud.vue'
+import FeaturedProjects from '../components/home/FeaturedProjects.vue'
+import HomeHero from '../components/home/HomeHero.vue'
+import LatestPosts from '../components/home/LatestPosts.vue'
 
 const fallbackProfile: SiteProfile = {
   siteTitle: '马森雨的技术博客',
@@ -26,21 +30,25 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="home-shell">
-    <p class="eyebrow">masenyu.top</p>
-    <h1>{{ profile.siteTitle }}</h1>
-    <p class="subtitle">{{ profile.subtitle }}</p>
-    <p class="description">{{ profile.description }}</p>
+  <div class="home-page">
+    <HomeHero
+      :owner="profile.owner"
+      :subtitle="profile.subtitle"
+      :description="profile.description"
+    />
+    <LatestPosts />
+    <CategoryCloud />
+    <FeaturedProjects />
 
-    <div class="actions">
-      <RouterLink class="primary-button" to="/posts">开始阅读</RouterLink>
-      <RouterLink class="secondary-button" to="/projects">查看项目</RouterLink>
-    </div>
+    <section class="about-strip" aria-labelledby="about-strip-title">
+      <div>
+        <p class="section-kicker">About</p>
+        <h2 id="about-strip-title">关于我</h2>
+        <p>{{ profile.description }}</p>
+      </div>
+      <RouterLink class="secondary-button" to="/about">了解更多</RouterLink>
+    </section>
 
-    <div class="status-panel">
-      <span>第一阶段骨架</span>
-      <strong>{{ apiStatus }}</strong>
-    </div>
-  </section>
+    <p class="api-status" aria-live="polite">{{ apiStatus }}</p>
+  </div>
 </template>
-
