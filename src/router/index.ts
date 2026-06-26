@@ -1,9 +1,19 @@
-import type { RouteRecordRaw } from 'vue-router'
+import type { RouteRecordRaw, Router } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
 
+import { ADMIN_UNAUTHORIZED_EVENT } from '../api/admin'
+import AdminLayout from '../components/admin/AdminLayout.vue'
+import { useAuthStore } from '../stores/auth'
 import ArchiveView from '../views/ArchiveView.vue'
 import HomeView from '../views/HomeView.vue'
 import PlaceholderView from '../views/PlaceholderView.vue'
+import AdminDashboardView from '../views/admin/AdminDashboardView.vue'
+import AdminLoginView from '../views/admin/AdminLoginView.vue'
+import AdminPostEditView from '../views/admin/AdminPostEditView.vue'
+import AdminPostsView from '../views/admin/AdminPostsView.vue'
+import AdminProjectsView from '../views/admin/AdminProjectsView.vue'
+import AdminSettingsView from '../views/admin/AdminSettingsView.vue'
+import AdminTaxonomyView from '../views/admin/AdminTaxonomyView.vue'
 import PostDetailView from '../views/PostDetailView.vue'
 import PostListView from '../views/PostListView.vue'
 import SearchView from '../views/SearchView.vue'
@@ -68,7 +78,7 @@ export const routes: RouteRecordRaw[] = [
     component: PlaceholderView,
     props: {
       title: '项目',
-      description: '精选项目展示将在首页阶段逐步丰富。'
+      description: '精选项目展示将在后续继续丰富。'
     }
   },
   {
@@ -88,11 +98,87 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/admin/login',
     name: 'admin-login',
-    component: PlaceholderView,
-    props: {
-      title: '后台登录',
-      description: '后台登录将在第四阶段接入 JWT 鉴权。'
-    }
+    component: AdminLoginView
+  },
+  {
+    path: '/admin',
+    name: 'admin',
+    component: AdminLayout,
+    meta: {
+      requiresAuth: true
+    },
+    children: [
+      {
+        path: '',
+        name: 'admin-dashboard',
+        component: AdminDashboardView,
+        meta: {
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'posts',
+        name: 'admin-posts',
+        component: AdminPostsView,
+        meta: {
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'posts/create',
+        name: 'admin-post-create',
+        component: AdminPostEditView,
+        meta: {
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'posts/:id/edit',
+        name: 'admin-post-edit',
+        component: AdminPostEditView,
+        meta: {
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'categories',
+        name: 'admin-categories',
+        component: AdminTaxonomyView,
+        meta: {
+          requiresAuth: true
+        },
+        props: {
+          mode: 'categories'
+        }
+      },
+      {
+        path: 'tags',
+        name: 'admin-tags',
+        component: AdminTaxonomyView,
+        meta: {
+          requiresAuth: true
+        },
+        props: {
+          mode: 'tags'
+        }
+      },
+      {
+        path: 'projects',
+        name: 'admin-projects',
+        component: AdminProjectsView,
+        meta: {
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'settings',
+        name: 'admin-settings',
+        component: AdminSettingsView,
+        meta: {
+          requiresAuth: true
+        }
+      }
+    ]
   }
 ]
 
@@ -101,3 +187,46 @@ export const router = createRouter({
   routes,
   scrollBehavior: () => ({ top: 0 })
 })
+
+router.beforeEach((to) => {
+  if (!to.matched.some((record) => record.meta.requiresAuth)) {
+    return true
+  }
+
+  const authStore = useAuthStore()
+
+  if (authStore.isAuthenticated) {
+    return true
+  }
+
+  return {
+    path: '/admin/login',
+    query: {
+      redirect: to.fullPath
+    }
+  }
+})
+
+export function installAdminUnauthorizedRedirect(targetRouter: Router, onUnauthorized?: () => void) {
+  const redirectToLogin = () => {
+    onUnauthorized?.()
+
+    const currentRoute = targetRouter.currentRoute.value
+    if (!currentRoute.path.startsWith('/admin') || currentRoute.path === '/admin/login') {
+      return
+    }
+
+    void targetRouter.push({
+      path: '/admin/login',
+      query: {
+        redirect: currentRoute.fullPath
+      }
+    })
+  }
+
+  window.addEventListener(ADMIN_UNAUTHORIZED_EVENT, redirectToLogin)
+
+  return () => {
+    window.removeEventListener(ADMIN_UNAUTHORIZED_EVENT, redirectToLogin)
+  }
+}
