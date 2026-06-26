@@ -1,8 +1,13 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
 
+import ArchiveView from '../views/ArchiveView.vue'
 import HomeView from '../views/HomeView.vue'
 import PlaceholderView from '../views/PlaceholderView.vue'
+import PostDetailView from '../views/PostDetailView.vue'
+import PostListView from '../views/PostListView.vue'
+import SearchView from '../views/SearchView.vue'
+import TaxonomyView from '../views/TaxonomyView.vue'
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -13,65 +18,49 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/posts',
     name: 'posts',
-    component: PlaceholderView,
-    props: {
-      title: '文章',
-      description: '文章列表将在第三阶段接入真实数据。'
-    }
+    component: PostListView
   },
   {
     path: '/posts/:slug',
     name: 'post-detail',
-    component: PlaceholderView,
-    props: {
-      title: '文章详情',
-      description: 'Markdown 文章详情将在第三阶段接入。'
-    }
+    component: PostDetailView
   },
   {
     path: '/categories',
     name: 'categories',
-    component: PlaceholderView,
+    component: TaxonomyView,
     props: {
-      title: '分类',
-      description: '分类入口将在文章系统阶段完善。'
+      type: 'categories'
     }
   },
   {
     path: '/categories/:slug',
     name: 'category-posts',
-    component: PlaceholderView,
+    component: PostListView,
     props: {
-      title: '分类文章',
-      description: '分类文章列表将在第三阶段接入真实数据。'
+      mode: 'category'
     }
   },
   {
     path: '/tags',
     name: 'tags',
-    component: PlaceholderView,
+    component: TaxonomyView,
     props: {
-      title: '标签',
-      description: '标签云将在第三阶段接入真实数据。'
+      type: 'tags'
     }
   },
   {
     path: '/tags/:slug',
     name: 'tag-posts',
-    component: PlaceholderView,
+    component: PostListView,
     props: {
-      title: '标签文章',
-      description: '标签文章列表将在第三阶段接入真实数据。'
+      mode: 'tag'
     }
   },
   {
     path: '/archive',
     name: 'archive',
-    component: PlaceholderView,
-    props: {
-      title: '归档',
-      description: '文章归档将在第三阶段接入真实数据。'
-    }
+    component: ArchiveView
   },
   {
     path: '/projects',
@@ -94,11 +83,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/search',
     name: 'search',
-    component: PlaceholderView,
-    props: {
-      title: '搜索',
-      description: '站内搜索将在第三阶段接入真实数据。'
-    }
+    component: SearchView
   },
   {
     path: '/admin/login',
