@@ -6,6 +6,8 @@ defineProps<{
   subtitle: string
   description: string
 }>()
+
+const typedIntro = '专注于AI 融入JAVA GO 业务，项目实践沉淀成技术作品'
 </script>
 
 <template>
@@ -13,9 +15,18 @@ defineProps<{
     <HeroParticleDome />
 
     <div class="hero-content">
-      <p class="eyebrow">masenyu.top</p>
-      <h1 id="home-title">你好，我是{{ owner }}</h1>
+      <p class="hero-brandline">
+        <span class="hero-brand-mark" aria-hidden="true">M</span>
+        <span>{{ owner }} Blog</span>
+      </p>
+      <h1 id="home-title">
+        <span>构建清爽可靠的</span>
+        <span>技术作品</span>
+      </h1>
       <p class="subtitle">{{ subtitle }}</p>
+      <p class="typed-intro" :aria-label="typedIntro">
+        <span>{{ typedIntro }}</span>
+      </p>
       <p class="description">{{ description }}</p>
 
       <div class="actions" aria-label="首页快捷操作">

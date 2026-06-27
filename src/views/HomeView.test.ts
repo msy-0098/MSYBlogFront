@@ -26,7 +26,10 @@ describe('HomeView', () => {
 
     await flushPromises()
 
-    expect(wrapper.get('h1').text()).toBe('你好，我是马森雨')
+    expect(wrapper.get('h1').text()).toContain('构建清爽可靠的')
+    expect(wrapper.get('h1').text()).toContain('技术作品')
+    expect(wrapper.text()).toContain('马森雨 Blog')
+    expect(wrapper.text()).toContain('专注于AI 融入JAVA GO 业务，项目实践沉淀成技术作品')
     expect(wrapper.find('[data-test="particle-dome"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('最新文章')
     expect(wrapper.text()).toContain('分类入口')

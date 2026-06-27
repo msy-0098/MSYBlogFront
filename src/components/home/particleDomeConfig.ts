@@ -1,5 +1,7 @@
-export const PARTICLE_RADIUS = 0.016
-export const DOME_BASE_Y = -1.4
+export const PARTICLE_LENGTH = 0.11
+export const PARTICLE_THICKNESS = 0.02
+export const PARTICLE_JUMP_AMPLITUDE = 0.1
+export const DOME_BASE_Y = -1.18
 
 export interface MouseFollowTarget {
   rotationX: number
@@ -10,22 +12,22 @@ export interface MouseFollowTarget {
 
 export function getParticleCount(width: number, reducedMotion: boolean) {
   if (reducedMotion) {
-    return 260
+    return 520
   }
   if (width < 640) {
-    return 840
+    return 1080
   }
   if (width < 1024) {
-    return 1500
+    return 2300
   }
-  return 2600
+  return 5000
 }
 
 export function getMouseFollowTarget(mouseX: number, mouseY: number): MouseFollowTarget {
   return {
     rotationX: mouseY * 0.5,
     rotationY: mouseX * 0.72,
-    positionX: mouseX * 0.72,
-    positionY: DOME_BASE_Y - mouseY * 0.38
+    positionX: mouseX * 0.82,
+    positionY: DOME_BASE_Y - mouseY * 0.42
   }
 }

@@ -3,15 +3,18 @@ import { describe, expect, it } from 'vitest'
 import {
   getParticleCount,
   getMouseFollowTarget,
-  PARTICLE_RADIUS
+  PARTICLE_JUMP_AMPLITUDE,
+  PARTICLE_LENGTH,
+  PARTICLE_THICKNESS
 } from './particleDomeConfig'
 
 describe('particleDomeConfig', () => {
-  it('keeps the hero dome dense while preserving smaller round particles', () => {
-    expect(getParticleCount(1440, false)).toBeGreaterThanOrEqual(2200)
-    expect(getParticleCount(820, false)).toBeGreaterThanOrEqual(1400)
-    expect(getParticleCount(390, false)).toBeGreaterThanOrEqual(760)
-    expect(PARTICLE_RADIUS).toBeLessThanOrEqual(0.018)
+  it('keeps the hero dome dense with jumping line particles', () => {
+    expect(getParticleCount(1440, false)).toBeGreaterThanOrEqual(3600)
+    expect(getParticleCount(820, false)).toBeGreaterThanOrEqual(2200)
+    expect(getParticleCount(390, false)).toBeGreaterThanOrEqual(980)
+    expect(PARTICLE_LENGTH).toBeGreaterThan(PARTICLE_THICKNESS * 3)
+    expect(PARTICLE_JUMP_AMPLITUDE).toBeGreaterThanOrEqual(0.08)
   })
 
   it('maps mouse movement to a visible eased follow target', () => {
