@@ -8,17 +8,29 @@ import {
   type CanvasParticleSpec
 } from './particleDomeConfig'
 
+interface RuntimeParticle extends CanvasParticleSpec {
+  ox: number
+  oy: number
+  vx: number
+  vy: number
+  shape: 'circle' | 'ring' | 'capsule'
+}
+
 const stageRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 let animationFrameId = 0
-let particles: CanvasParticleSpec[] = []
+let runtimeParticles: RuntimeParticle[] = []
 let context: CanvasRenderingContext2D | null = null
 let width = 0
 let height = 0
 let prefersReducedMotion = false
 let targetParallax = { x: 0, y: 0 }
 let currentParallax = { x: 0, y: 0 }
+
+let mouseXCanvas = 0
+let mouseYCanvas = 0
+let isMouseActive = false
 
 function resizeCanvas() {
   const host = stageRef.value
@@ -37,15 +49,40 @@ function resizeCanvas() {
   canvas.style.height = `${height}px`
   context.setTransform(dpr, 0, 0, dpr, 0, 0)
 
-  particles = createCanvasParticleSpecs(
+  const specs = createCanvasParticleSpecs(
     getParticleCount(width, prefersReducedMotion),
     width,
     height,
     20260628
   )
+
+  runtimeParticles = specs.map((spec) => {
+    // Deterministic shape assignment based on particle phase
+    const shapeIndex = Math.floor(Math.abs(Math.sin(spec.phase * 100)) * 3)
+    const shape = ['capsule', 'circle', 'ring'][shapeIndex] as 'capsule' | 'circle' | 'ring'
+    return {
+      ...spec,
+      ox: 0,
+      oy: 0,
+      vx: 0,
+      vy: 0,
+      shape
+    }
+  })
 }
 
 function handlePointerMove(event: MouseEvent) {
+  const canvas = canvasRef.value
+  if (!canvas) {
+    return
+  }
+  const rect = canvas.getBoundingClientRect()
+
+  // Track cursor position centered relative to the canvas
+  mouseXCanvas = event.clientX - rect.left - rect.width / 2
+  mouseYCanvas = event.clientY - rect.top - rect.height / 2
+  isMouseActive = true
+
   targetParallax = getParallaxOffset(
     event.clientX / window.innerWidth - 0.5,
     event.clientY / window.innerHeight - 0.5
@@ -54,33 +91,47 @@ function handlePointerMove(event: MouseEvent) {
 
 function resetParallax() {
   targetParallax = { x: 0, y: 0 }
+  isMouseActive = false
 }
 
-function renderParticle(particle: CanvasParticleSpec, elapsed: number) {
+function renderParticle(
+  particle: RuntimeParticle,
+  x: number,
+  y: number,
+  wave: number
+) {
   if (!context) {
     return
   }
 
-  const wave = prefersReducedMotion ? 0 : Math.sin(elapsed * 0.0016 + particle.phase)
-  const angle = particle.angle + (prefersReducedMotion ? 0 : elapsed * particle.speed)
-  const radius = particle.radius + wave * particle.radialDrift
-  const centerX = width / 2 + currentParallax.x
-  const centerY = height / 2 + currentParallax.y
-  const x = centerX + Math.cos(angle) * radius
-  const y = centerY + Math.sin(angle) * radius
-  const halfLength = particle.length / 2
-  const orientation = particle.orientation + wave * 0.12
-  const dx = Math.cos(orientation) * halfLength
-  const dy = Math.sin(orientation) * halfLength
-
   context.globalAlpha = particle.alpha
-  context.strokeStyle = particle.color
-  context.lineWidth = particle.thickness
-  context.lineCap = 'round'
-  context.beginPath()
-  context.moveTo(x - dx, y - dy)
-  context.lineTo(x + dx, y + dy)
-  context.stroke()
+
+  if (particle.shape === 'circle') {
+    context.fillStyle = particle.color
+    context.beginPath()
+    context.arc(x, y, particle.thickness * 1.8, 0, Math.PI * 2)
+    context.fill()
+  } else if (particle.shape === 'ring') {
+    context.strokeStyle = particle.color
+    context.lineWidth = particle.thickness * 0.8
+    context.beginPath()
+    context.arc(x, y, particle.thickness * 2.4, 0, Math.PI * 2)
+    context.stroke()
+  } else {
+    // Default capsule shape
+    const halfLength = particle.length / 2
+    const orientation = particle.orientation + wave * 0.12
+    const dx = Math.cos(orientation) * halfLength
+    const dy = Math.sin(orientation) * halfLength
+
+    context.strokeStyle = particle.color
+    context.lineWidth = particle.thickness
+    context.lineCap = 'round'
+    context.beginPath()
+    context.moveTo(x - dx, y - dy)
+    context.lineTo(x + dx, y + dy)
+    context.stroke()
+  }
 }
 
 function animate(elapsed = 0) {
@@ -91,7 +142,57 @@ function animate(elapsed = 0) {
   context.clearRect(0, 0, width, height)
   currentParallax.x += (targetParallax.x - currentParallax.x) * 0.065
   currentParallax.y += (targetParallax.y - currentParallax.y) * 0.065
-  particles.forEach((particle) => renderParticle(particle, elapsed))
+
+  runtimeParticles.forEach((particle) => {
+    // 1. Jellyfish wave base position (relative to center)
+    const wave = prefersReducedMotion ? 0 : Math.sin(elapsed * 0.0016 + particle.phase)
+    const angle = particle.angle + (prefersReducedMotion ? 0 : elapsed * particle.speed)
+    const radius = particle.radius + wave * particle.radialDrift
+    const waveAngleOffset = wave * 0.04
+    const baseX = Math.cos(angle + waveAngleOffset) * radius
+    const baseY = Math.sin(angle + waveAngleOffset) * radius
+
+    // 2. Mouse Repulsion physics
+    if (isMouseActive && !prefersReducedMotion) {
+      // Mouse coordinates relative to moving center
+      const mouseRelX = mouseXCanvas - currentParallax.x
+      const mouseRelY = mouseYCanvas - currentParallax.y
+
+      const particleX = baseX + particle.ox
+      const particleY = baseY + particle.oy
+      const dx = particleX - mouseRelX
+      const dy = particleY - mouseRelY
+      const dist = Math.hypot(dx, dy)
+
+      const repulsionRadius = 150
+      if (dist < repulsionRadius && dist > 0) {
+        const force = (repulsionRadius - dist) / repulsionRadius
+        const accel = force * force * 2.8 // elastic repulsion speed scaling
+        particle.vx += (dx / dist) * accel
+        particle.vy += (dy / dist) * accel
+      }
+    }
+
+    // 3. Spring-damping recovery physics
+    const springK = 0.05
+    const damping = 0.88
+    const axSpring = -springK * particle.ox
+    const aySpring = -springK * particle.oy
+
+    particle.vx = (particle.vx + axSpring) * damping
+    particle.vy = (particle.vy + aySpring) * damping
+    particle.ox += particle.vx
+    particle.oy += particle.vy
+
+    // 4. Final render coordinates
+    const centerX = width / 2 + currentParallax.x
+    const centerY = height / 2 + currentParallax.y
+    const renderX = centerX + baseX + particle.ox
+    const renderY = centerY + baseY + particle.oy
+
+    renderParticle(particle, renderX, renderY, wave)
+  })
+
   context.globalAlpha = 1
 
   if (!prefersReducedMotion) {
