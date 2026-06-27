@@ -274,13 +274,23 @@ h2 {
 h1 {
   max-width: 980px;
   font-size: clamp(4rem, 6.8vw, 6.2rem);
-  line-height: 0.96;
-  font-weight: 700;
-  letter-spacing: -0.04em;
+  line-height: 0.98;
 }
 
 h1 span {
   display: block;
+}
+
+h1 .title-light {
+  font-weight: 300;
+  letter-spacing: -0.035em;
+  color: #5f6368;
+}
+
+h1 .title-bold {
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  color: #111827;
 }
 
 h2 {
@@ -316,6 +326,9 @@ h2 {
   display: inline-block;
   max-width: 100%;
   white-space: pre-wrap;
+  background: linear-gradient(135deg, #111827 0%, #4b5563 60%, #1f2937 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .typed-intro i {

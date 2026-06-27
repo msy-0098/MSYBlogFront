@@ -60,8 +60,8 @@ onBeforeUnmount(clearTypingTimer)
         <span>{{ owner }} Blog</span>
       </p>
       <h1 id="home-title">
-        <span>构建清爽可靠的</span>
-        <span>技术作品</span>
+        <span class="title-light">构建清爽可靠的</span>
+        <span class="title-bold">技术作品</span>
       </h1>
       <p class="subtitle">{{ subtitle }}</p>
       <p class="typed-intro" :aria-label="typedIntro" data-test="typed-intro">

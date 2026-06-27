@@ -31,6 +31,7 @@ let currentParallax = { x: 0, y: 0 }
 let mouseXCanvas = 0
 let mouseYCanvas = 0
 let isMouseActive = false
+let startTime: number | null = null
 
 function resizeCanvas() {
   const host = stageRef.value
@@ -48,6 +49,9 @@ function resizeCanvas() {
   canvas.style.width = `${width}px`
   canvas.style.height = `${height}px`
   context.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+  // Reset animation start time to prevent initial layout thrashing and particle displacement
+  startTime = null
 
   const specs = createCanvasParticleSpecs(
     getParticleCount(width, prefersReducedMotion),
@@ -104,22 +108,48 @@ function renderParticle(
     return
   }
 
-  context.globalAlpha = particle.alpha
-
   if (particle.shape === 'circle') {
-    context.fillStyle = particle.color
-    context.beginPath()
-    context.arc(x, y, particle.thickness * 1.8, 0, Math.PI * 2)
-    context.fill()
+    // Premium Google style bokeh radial gradient for deep glow particles
+    if (particle.thickness > 1.6 && !prefersReducedMotion) {
+      const radius = particle.thickness * 2.8
+      const grad = context.createRadialGradient(x, y, radius * 0.1, x, y, radius)
+      grad.addColorStop(0, particle.color)
+      grad.addColorStop(0.2, particle.color)
+      grad.addColorStop(1, 'transparent')
+
+      context.fillStyle = grad
+      context.globalAlpha = particle.alpha * 1.3
+      context.beginPath()
+      context.arc(x, y, radius, 0, Math.PI * 2)
+      context.fill()
+    } else {
+      // Solid flat circle
+      context.fillStyle = particle.color
+      context.globalAlpha = particle.alpha
+      context.beginPath()
+      context.arc(x, y, particle.thickness * 1.8, 0, Math.PI * 2)
+      context.fill()
+    }
   } else if (particle.shape === 'ring') {
     context.strokeStyle = particle.color
-    context.lineWidth = particle.thickness * 0.8
+    context.lineWidth = particle.thickness * 0.75
+    context.globalAlpha = particle.alpha
     context.beginPath()
-    context.arc(x, y, particle.thickness * 2.4, 0, Math.PI * 2)
+
+    if (!prefersReducedMotion) {
+      // Simulate 3D rotation in 2D Space using ellipse height scaling and dynamic angle rotation
+      const rx = particle.thickness * 2.5
+      const ry = rx * (0.55 + Math.sin(wave * 1.3 + particle.phase) * 0.35)
+      const rotation = particle.orientation + wave * 0.16 + (isMouseActive ? mouseXCanvas * 0.0006 : 0)
+      context.ellipse(x, y, rx, ry, rotation, 0, Math.PI * 2)
+    } else {
+      context.arc(x, y, particle.thickness * 2.4, 0, Math.PI * 2)
+    }
     context.stroke()
   } else {
-    // Default capsule shape
-    const halfLength = particle.length / 2
+    // Default capsule shape with dynamic breathing length
+    const breathFactor = prefersReducedMotion ? 1.0 : 1.0 + Math.sin(wave * 1.5 + particle.phase) * 0.16
+    const halfLength = (particle.length * breathFactor) / 2
     const orientation = particle.orientation + wave * 0.12
     const dx = Math.cos(orientation) * halfLength
     const dy = Math.sin(orientation) * halfLength
@@ -127,6 +157,7 @@ function renderParticle(
     context.strokeStyle = particle.color
     context.lineWidth = particle.thickness
     context.lineCap = 'round'
+    context.globalAlpha = particle.alpha
     context.beginPath()
     context.moveTo(x - dx, y - dy)
     context.lineTo(x + dx, y + dy)
@@ -143,10 +174,16 @@ function animate(elapsed = 0) {
   currentParallax.x += (targetParallax.x - currentParallax.x) * 0.065
   currentParallax.y += (targetParallax.y - currentParallax.y) * 0.065
 
+  // Anchor the starting elapsed timestamp to ensure smooth relative offsets
+  if (startTime === null) {
+    startTime = elapsed
+  }
+  const time = prefersReducedMotion ? 0 : (elapsed - startTime)
+
   runtimeParticles.forEach((particle) => {
     // 1. Jellyfish wave base position (relative to center)
-    const wave = prefersReducedMotion ? 0 : Math.sin(elapsed * 0.0016 + particle.phase)
-    const angle = particle.angle + (prefersReducedMotion ? 0 : elapsed * particle.speed)
+    const wave = prefersReducedMotion ? 0 : Math.sin(time * 0.0016 + particle.phase)
+    const angle = particle.angle + (prefersReducedMotion ? 0 : time * particle.speed)
     const radius = particle.radius + wave * particle.radialDrift
     const waveAngleOffset = wave * 0.04
     const baseX = Math.cos(angle + waveAngleOffset) * radius
@@ -206,7 +243,8 @@ onMounted(() => {
   }
 
   const canvas = canvasRef.value
-  context = canvas?.getContext('2d') ?? null
+  // Hardware-accelerated desynchronized canvas context for absolute low-lag drawing pipeline
+  context = canvas?.getContext('2d', { desynchronized: true, willReadFrequently: false }) ?? null
   if (!context) {
     return
   }
