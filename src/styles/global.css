@@ -170,12 +170,15 @@ main {
 
 .home-hero {
   position: relative;
+  isolation: isolate;
   display: grid;
   min-height: calc(100svh - 72px);
   place-items: center;
   overflow: hidden;
-  padding: clamp(4.2rem, 7vh, 6.5rem) 1.5rem clamp(1.5rem, 3.5vh, 3rem);
-  background: #ffffff;
+  padding: clamp(4.8rem, 8vh, 7.2rem) 1.5rem clamp(2.2rem, 4.6vh, 3.8rem);
+  background:
+    radial-gradient(circle at 50% 48%, rgba(255, 255, 255, 0.98) 0 18%, rgba(255, 255, 255, 0.78) 29%, rgba(255, 255, 255, 0) 48%),
+    #ffffff;
 }
 
 .home-hero::after {
@@ -191,11 +194,12 @@ main {
 
 .particle-dome {
   position: absolute;
-  inset: -4rem 0 -3rem;
+  inset: -5.5rem -4vw -4rem;
   z-index: 0;
-  min-height: 720px;
-  opacity: 0.86;
-  filter: saturate(1.08);
+  min-height: 760px;
+  opacity: 0.92;
+  filter: saturate(1.12);
+  mask-image: linear-gradient(180deg, #000 0 76%, transparent 100%);
   pointer-events: none;
 }
 
@@ -210,18 +214,24 @@ main {
   z-index: 1;
   display: grid;
   justify-items: center;
-  width: min(1100px, 100%);
+  width: min(980px, 100%);
   text-align: center;
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.92),
-    0 0 24px rgba(255, 255, 255, 0.95);
+    0 1px 0 rgba(255, 255, 255, 0.98),
+    0 0 30px rgba(255, 255, 255, 0.96),
+    0 0 70px rgba(255, 255, 255, 0.9);
 }
 
 .hero-brandline {
   display: inline-flex;
   align-items: center;
   gap: 0.58rem;
-  margin: 0 0 clamp(2rem, 4.7vh, 3.4rem);
+  margin: 0 0 clamp(1.8rem, 4vh, 3rem);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 999px;
+  padding: 0.38rem 0.72rem 0.38rem 0.42rem;
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px) saturate(1.16);
   color: #111827;
   font-size: clamp(1rem, 1.45vw, 1.25rem);
   font-weight: 650;
@@ -346,9 +356,9 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
+  min-height: 46px;
   border-radius: 999px;
-  padding: 0 1.25rem;
+  padding: 0 1.32rem;
   font-weight: 700;
   transition:
     border-color 160ms ease,
@@ -358,15 +368,18 @@ h2 {
 }
 
 .primary-button {
-  background: #111827;
+  background: linear-gradient(135deg, #111827, #1f2937);
   color: #ffffff;
-  box-shadow: 0 16px 38px rgba(17, 24, 39, 0.16);
+  box-shadow:
+    0 18px 42px rgba(17, 24, 39, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .secondary-button,
 .section-link {
   border: 1px solid rgba(17, 24, 39, 0.12);
-  background: rgba(248, 250, 252, 0.86);
+  background: rgba(255, 255, 255, 0.74);
+  backdrop-filter: blur(14px) saturate(1.12);
   color: #111827;
 }
 
@@ -1424,13 +1437,17 @@ h2 {
 
   .home-hero {
     min-height: calc(100vh - 66px);
-    padding: 3.8rem 1rem 2.25rem;
+    padding: 4.2rem 1rem 2.5rem;
   }
 
   .particle-dome {
-    inset: -3rem -28vw -2rem;
+    inset: -2rem -58vw -2rem;
     min-height: 620px;
-    opacity: 0.66;
+    opacity: 0.7;
+  }
+
+  .hero-content {
+    width: min(100%, 28rem);
   }
 
   h1 {

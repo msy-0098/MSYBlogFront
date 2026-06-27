@@ -16,6 +16,9 @@ vi.mock('../api/site', () => ({
 
 describe('HomeView', () => {
   it('renders the second-stage visitor homepage sections', async () => {
+    const canvasContextSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue(null)
     const wrapper = mount(HomeView, {
       global: {
         stubs: {
@@ -35,10 +38,12 @@ describe('HomeView', () => {
     const typedText = wrapper.get('[data-test="typed-intro-text"]')
     expect(typedText.attributes('data-typing-stream')).toBe('true')
     expect(wrapper.find('[data-test="particle-dome"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="particle-dome"] canvas').exists()).toBe(true)
     expect(wrapper.text()).toContain('最新文章')
     expect(wrapper.text()).toContain('分类入口')
     expect(wrapper.text()).toContain('精选项目')
     expect(wrapper.findAll('.google-flow-section').length).toBeGreaterThanOrEqual(4)
     expect(wrapper.findAll('[data-test="post-card"]')).toHaveLength(6)
+    canvasContextSpy.mockRestore()
   })
 })

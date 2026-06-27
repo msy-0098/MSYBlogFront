@@ -1,288 +1,175 @@
-export const PARTICLE_LENGTH = 0.072
-export const PARTICLE_THICKNESS = 0.0095
-export const PARTICLE_JUMP_AMPLITUDE = 0.046
-export const PARTICLE_OPACITY = 0.52
-export const DOME_BASE_Y = -1.16
-export const DOME_RING_COUNT = 34
-export const DOME_CENTER_CLEAR_WIDTH = 2.75
+export const PARTICLE_RENDERER_KIND = 'canvas-2d'
 
-export const PARTICLE_PALETTE = [
-  '#2563EB',
-  '#3B82F6',
-  '#6366F1',
-  '#8B5CF6',
-  '#E11D48',
-  '#F97316',
-  '#FBBF24'
-] as const
+export const ANTIGRAVITY_COLORS = {
+  blue: '#4285F4',
+  purple: '#A142F4',
+  red: '#EA4335',
+  orange: '#F9AB00',
+  yellow: '#FBBC05'
+} as const
 
-export const COOL_PARTICLE_PALETTE_INDICES = [0, 1, 2, 3]
-export const WARM_PARTICLE_PALETTE_INDICES = [4, 5, 6]
-
-export interface MouseFollowTarget {
-  rotationX: number
-  rotationY: number
-  positionX: number
-  positionY: number
+export interface CanvasParticleRadii {
+  centerEmptyRadius: number
+  maxRadius: number
+  bandWidth: number
 }
 
-export interface FluidDomeFollowTarget extends MouseFollowTarget {
-  centerX: number
-  centerY: number
-  impact: number
-}
-
-export interface ContainedDomeFlowPointInput {
+export interface CanvasParticleSpec {
   angle: number
-  boundaryRadius: number
-  centerX: number
-  centerY: number
-  impact: number
   radius: number
-  verticalScale: number
-}
-
-export interface ContainedDomeFlowPoint {
-  x: number
-  y: number
-  boundaryHit: number
-}
-
-export interface DomeParticleSpec {
-  x: number
-  y: number
-  z: number
-  scale: number
-  rotationX: number
-  rotationY: number
-  rotationZ: number
+  length: number
+  thickness: number
+  orientation: number
+  color: string
+  alpha: number
+  speed: number
+  radialDrift: number
   phase: number
-  jump: number
-  paletteIndex: number
-  ringIndex: number
-  flowAngle: number
-  flowRadius: number
-  boundaryRadius: number
-  boundaryStrength: number
-  flowSpeed: number
 }
 
 const TWO_PI = Math.PI * 2
-const DOME_RADIUS_X = 6.2
-const DOME_RADIUS_Y = 3.72
-const DOME_RADIUS_Z = 1.85
-const DOME_CENTER_Y = 1.34
+const PARALLAX_LIMIT = 18
 
 export function getParticleCount(width: number, reducedMotion: boolean) {
   if (reducedMotion) {
-    return 260
+    return 140
   }
   if (width < 640) {
-    return 360
+    return 260
   }
   if (width < 1024) {
-    return 780
+    return 360
   }
-  return 1600
+  return 480
 }
 
-export function getMouseFollowTarget(mouseX: number, mouseY: number): MouseFollowTarget {
-  return {
-    rotationX: mouseY * 0.46,
-    rotationY: mouseX * 0.66,
-    positionX: mouseX * 0.54,
-    positionY: DOME_BASE_Y - mouseY * 0.32
-  }
-}
-
-export function getBoundaryImpact(mouseX: number, mouseY: number) {
-  const edgePressure = Math.max(Math.abs(mouseX), Math.abs(mouseY)) * 2
-  return Math.max(0.08, edgePressure ** 2.25)
-}
-
-export function getFluidDomeFollowTarget(mouseX: number, mouseY: number): FluidDomeFollowTarget {
-  const target = getMouseFollowTarget(mouseX, mouseY)
-  const centerX = clamp(mouseX * 1.52, -0.95, 0.95)
-  const centerY = clamp(-mouseY * 1.05, -0.72, 0.72)
+export function getCanvasParticleRadii(width: number, height: number): CanvasParticleRadii {
+  const shortestSide = Math.min(width, height)
+  const centerEmptyRadius = clamp(shortestSide * 0.28, 250, 250)
+  const maxRadius = clamp(shortestSide * 0.89, 520, 800)
 
   return {
-    ...target,
-    centerX,
-    centerY,
-    impact: getBoundaryImpact(mouseX, mouseY)
+    centerEmptyRadius,
+    maxRadius,
+    bandWidth: maxRadius - centerEmptyRadius
   }
 }
 
-export function getContainedDomeFlowPoint(
-  input: ContainedDomeFlowPointInput
-): ContainedDomeFlowPoint {
-  const boundaryRadius = Math.max(0.16, input.boundaryRadius)
-  const verticalScale = Math.max(0.24, input.verticalScale)
-  const impact = clamp(input.impact, 0, 1)
-  const rawX = input.centerX + Math.cos(input.angle) * input.radius
-  const rawY = input.centerY + Math.sin(input.angle) * input.radius * verticalScale
-  const normalizedX = rawX / boundaryRadius
-  const normalizedY = rawY / (boundaryRadius * verticalScale)
-  const normalizedDistance = Math.max(0.001, Math.hypot(normalizedX, normalizedY))
-  const boundaryHit = clamp((normalizedDistance - 0.7) / 0.3, 0, 1)
-  const boundaryLimit = 0.985 - boundaryHit * impact * 0.04
-  const compression = normalizedDistance > boundaryLimit ? boundaryLimit / normalizedDistance : 1
-  const compressedX = normalizedX * compression
-  const compressedY = normalizedY * compression
-  const tangentX = -compressedY / Math.max(0.001, Math.hypot(compressedX, compressedY))
-  const tangentY = compressedX / Math.max(0.001, Math.hypot(compressedX, compressedY))
-  const slide = boundaryHit * (0.03 + impact * 0.16)
-  let flowedX = compressedX + tangentX * slide
-  let flowedY = compressedY + tangentY * slide
-  const flowedDistance = Math.hypot(flowedX, flowedY)
+export function getParticleColorByAngle(angle: number) {
+  const normalizedAngle = normalizeAngle(angle)
 
-  if (flowedDistance > 0.99) {
-    const clampRatio = 0.99 / flowedDistance
-    flowedX *= clampRatio
-    flowedY *= clampRatio
+  if (normalizedAngle === 0 || normalizedAngle >= TWO_PI - 0.18 || normalizedAngle <= 0.34) {
+    return ANTIGRAVITY_COLORS.yellow
+  }
+  if (normalizedAngle >= Math.PI * 1.48 && normalizedAngle <= Math.PI * 1.64) {
+    return ANTIGRAVITY_COLORS.purple
+  }
+  if (normalizedAngle >= Math.PI && normalizedAngle < Math.PI * 1.02) {
+    return ANTIGRAVITY_COLORS.blue
+  }
+  if (normalizedAngle >= Math.PI * 1.02 && normalizedAngle < Math.PI * 1.48) {
+    return blendHex(
+      ANTIGRAVITY_COLORS.blue,
+      ANTIGRAVITY_COLORS.purple,
+      (normalizedAngle - Math.PI * 1.02) / (Math.PI * 0.46)
+    )
+  }
+  if (normalizedAngle >= Math.PI * 0.46 && normalizedAngle <= Math.PI * 0.62) {
+    return ANTIGRAVITY_COLORS.red
+  }
+  if (normalizedAngle >= Math.PI * 0.62 && normalizedAngle < Math.PI) {
+    return blendHex(
+      ANTIGRAVITY_COLORS.red,
+      ANTIGRAVITY_COLORS.orange,
+      (normalizedAngle - Math.PI * 0.62) / (Math.PI * 0.38)
+    )
+  }
+  if (normalizedAngle > Math.PI * 0.34 && normalizedAngle < Math.PI * 0.46) {
+    return blendHex(
+      ANTIGRAVITY_COLORS.yellow,
+      ANTIGRAVITY_COLORS.red,
+      (normalizedAngle - Math.PI * 0.34) / (Math.PI * 0.12)
+    )
   }
 
-  return {
-    x: flowedX * boundaryRadius,
-    y: flowedY * boundaryRadius * verticalScale,
-    boundaryHit
-  }
+  return ANTIGRAVITY_COLORS.yellow
 }
 
-export function isWithinDomeClearZone(x: number, y: number) {
-  const titleClear =
-    Math.abs(x) < 4.95 &&
-    y > 0.24 &&
-    y < 4.08 &&
-    Math.abs((y - 2.12) / 1.82) + Math.abs(x / 4.95) < 1.5
-  const actionClear = Math.abs(x) < 2.95 && y > -0.74 && y < 0.96
-
-  return titleClear || actionClear
-}
-
-export function createDomeParticleSpecs(count: number, seed = 13579): DomeParticleSpec[] {
+export function createCanvasParticleSpecs(
+  count: number,
+  width: number,
+  height: number,
+  seed = 13579
+): CanvasParticleSpec[] {
   const random = createSeededRandom(seed)
-  const ringWeights = Array.from({ length: DOME_RING_COUNT }, (_, ringIndex) => {
-    const latitude = getRingLatitude(ringIndex)
-    const radius = Math.sqrt(Math.max(0, 1 - latitude * latitude))
-    const verticalBias = 0.82 + Math.abs(latitude) * 0.24
-    return (0.055 + radius ** 2.1) * verticalBias
-  })
-  const totalWeight = ringWeights.reduce((sum, weight) => sum + weight, 0)
-  const ringTargets = ringWeights.map((weight) => {
-    return Math.floor((count * weight) / totalWeight)
-  })
+  const radii = getCanvasParticleRadii(width, height)
+  const specs: CanvasParticleSpec[] = []
 
-  let allocated = ringTargets.reduce((sum, value) => sum + value, 0)
-  let ringCursor = Math.floor(DOME_RING_COUNT * 0.5)
-  while (allocated < count) {
-    ringTargets[ringCursor % DOME_RING_COUNT] += 1
-    ringCursor += 5
-    allocated += 1
-  }
+  while (specs.length < count) {
+    const angle = pickComposedAngle(random)
+    const radialProgress = random() ** 1.82
+    const radius = radii.centerEmptyRadius + radialProgress * radii.bandWidth
+    const orientation =
+      angle + Math.PI / 2 + (random() - 0.5) * 0.34 + (random() < 0.16 ? Math.PI / 2 : 0)
 
-  const specs: DomeParticleSpec[] = []
-  ringTargets.forEach((target, ringIndex) => {
-    specs.push(...createRingParticleSpecs(ringIndex, target, random))
-  })
-
-  return specs.slice(0, count)
-}
-
-function createRingParticleSpecs(
-  ringIndex: number,
-  target: number,
-  random: () => number
-): DomeParticleSpec[] {
-  const latitude = getRingLatitude(ringIndex)
-  const ringRadius = Math.sqrt(Math.max(0, 1 - latitude * latitude))
-  const y = DOME_CENTER_Y + latitude * DOME_RADIUS_Y
-  const specs: DomeParticleSpec[] = []
-  const angleSlots = Math.max(18, Math.ceil(target * 1.58))
-  const ringOffset = random() * TWO_PI
-  let slot = 0
-
-  while (specs.length < target && slot < angleSlots * 8) {
-    const slotRatio = (slot % angleSlots) / angleSlots
-    const orbit = Math.floor(slot / angleSlots)
-    const jitter = (random() - 0.5) * (TWO_PI / angleSlots) * 0.42
-    const theta = slotRatio * TWO_PI + ringOffset + orbit * 0.071 + jitter
-    const candidate = createParticleSpec(theta, y, ringRadius, ringIndex, random)
-    const sideDensity = Math.abs(Math.cos(theta))
-    const shouldThinSideWall = sideDensity > 0.84 && random() < 0.56
-
-    if (!shouldThinSideWall && !isWithinDomeClearZone(candidate.x, candidate.y)) {
-      specs.push(candidate)
-    }
-
-    slot += 1
-  }
-
-  while (specs.length < target) {
-    const side = specs.length % 2 === 0 ? 1 : -1
-    const theta = (side > 0 ? 0 : Math.PI) + (random() - 0.5) * 0.82
-    specs.push(createParticleSpec(theta, y, ringRadius, ringIndex, random))
+    specs.push({
+      angle,
+      radius,
+      length: 3 + random() * 5,
+      thickness: 1.05 + random() * 0.95,
+      orientation,
+      color: getParticleColorByAngle(angle),
+      alpha: 0.46 + random() * 0.34,
+      speed: (random() - 0.5) * 0.0018,
+      radialDrift: 2.6 + random() * 5.8,
+      phase: random() * TWO_PI
+    })
   }
 
   return specs
 }
 
-function createParticleSpec(
-  theta: number,
-  y: number,
-  ringRadius: number,
-  ringIndex: number,
-  random: () => number
-): DomeParticleSpec {
-  const depth = Math.sin(theta)
-  const side = Math.cos(theta)
-  const sideCurve = Math.sign(side) * Math.abs(side) ** 1.08
-  const normalizedY = (y - DOME_CENTER_Y) / DOME_RADIUS_Y
-  const boundaryRadius = Math.max(0.28, Math.sqrt(Math.max(0, 1 - normalizedY * normalizedY)))
-  const flowRadius = Math.min(boundaryRadius * (0.18 + ringRadius * (0.76 + random() * 0.18)), boundaryRadius)
-  const x = DOME_RADIUS_X * ringRadius * sideCurve + (random() - 0.5) * 0.06
-  const z = DOME_RADIUS_Z * ringRadius * depth
-  const perspectiveLift = z * 0.1
-  const paletteIndex = pickPaletteIndex(side, random)
-  const scale = 0.52 + random() * 0.43 + Math.abs(depth) * 0.08
-
+export function getParallaxOffset(mouseX: number, mouseY: number) {
   return {
-    x,
-    y: y + perspectiveLift + (random() - 0.5) * 0.08,
-    z,
-    scale,
-    rotationX: depth * 0.1 + (random() - 0.5) * 0.07,
-    rotationY: -side * 0.08 + (random() - 0.5) * 0.08,
-    rotationZ: theta + Math.PI / 2 + (random() - 0.5) * 0.16,
-    phase: random() * TWO_PI,
-    jump: PARTICLE_JUMP_AMPLITUDE * (0.38 + random() * 0.72),
-    paletteIndex,
-    ringIndex,
-    flowAngle: theta + (random() - 0.5) * 0.16,
-    flowRadius,
-    boundaryRadius,
-    boundaryStrength: 0.28 + (flowRadius / boundaryRadius) * 0.72,
-    flowSpeed: 0.28 + random() * 0.42 + flowRadius * 0.16
+    x: clamp(mouseX * 36, -PARALLAX_LIMIT, PARALLAX_LIMIT),
+    y: clamp(mouseY * 36, -PARALLAX_LIMIT, PARALLAX_LIMIT)
   }
 }
 
-function pickPaletteIndex(side: number, random: () => number) {
-  if (side < -0.18) {
-    const pool = random() < 0.9 ? COOL_PARTICLE_PALETTE_INDICES : [4]
-    return pool[Math.floor(random() * pool.length)]
+function pickComposedAngle(random: () => number) {
+  const roll = random()
+  if (roll < 0.5) {
+    return Math.PI * (0.9 + random() * 0.72)
+  }
+  if (roll < 0.82) {
+    return Math.PI * (0.34 + random() * 0.66)
+  }
+  if (roll < 0.92) {
+    return Math.PI * (1.62 + random() * 0.38)
   }
 
-  if (side > 0.18) {
-    const pool = random() < 0.86 ? WARM_PARTICLE_PALETTE_INDICES : [1, 2, 3]
-    return pool[Math.floor(random() * pool.length)]
-  }
-
-  const pool = [1, 2, 3, 4]
-  return pool[Math.floor(random() * pool.length)]
+  return (random() - 0.5) * Math.PI * 0.72
 }
 
-function getRingLatitude(ringIndex: number) {
-  return -0.96 + (ringIndex / (DOME_RING_COUNT - 1)) * 1.92
+function normalizeAngle(angle: number) {
+  const normalizedAngle = angle % TWO_PI
+  return normalizedAngle < 0 ? normalizedAngle + TWO_PI : normalizedAngle
+}
+
+function blendHex(from: string, to: string, amount: number) {
+  const ratio = clamp(amount, 0, 1)
+  const fromRgb = hexToRgb(from)
+  const toRgb = hexToRgb(to)
+  const blended = fromRgb.map((channel, index) => {
+    return Math.round(channel + (toRgb[index] - channel) * ratio)
+  })
+
+  return `#${blended.map((channel) => channel.toString(16).padStart(2, '0')).join('').toUpperCase()}`
+}
+
+function hexToRgb(hex: string) {
+  const normalizedHex = hex.replace('#', '')
+  return [0, 2, 4].map((start) => parseInt(normalizedHex.slice(start, start + 2), 16))
 }
 
 function createSeededRandom(seed: number) {
