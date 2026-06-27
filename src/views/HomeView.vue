@@ -40,10 +40,11 @@ onMounted(async () => {
     <CategoryCloud />
     <FeaturedProjects />
 
-    <section class="about-strip" aria-labelledby="about-strip-title">
+    <section class="about-strip google-flow-section" aria-labelledby="about-strip-title">
       <div>
         <p class="section-kicker">About</p>
         <h2 id="about-strip-title">关于我</h2>
+        <p class="section-lead">像产品官网一样呈现个人技术品牌，也像工程日志一样保留真实实践。</p>
         <p>{{ profile.description }}</p>
       </div>
       <RouterLink class="secondary-button" to="/about">了解更多</RouterLink>

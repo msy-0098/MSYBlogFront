@@ -3,15 +3,18 @@ import { latestPosts } from '../../data/home'
 </script>
 
 <template>
-  <section class="section-band" aria-labelledby="latest-posts-title">
+  <section class="section-band google-flow-section" aria-labelledby="latest-posts-title">
     <div class="section-inner">
-      <div class="section-heading">
-        <p class="section-kicker">Writing</p>
-        <h2 id="latest-posts-title">最新文章</h2>
+      <div class="section-heading google-flow-heading">
+        <div>
+          <p class="section-kicker">Writing</p>
+          <h2 id="latest-posts-title">最新文章</h2>
+          <p class="section-lead">把 AI、后端工程和项目复盘沉淀成可以反复阅读的技术记录。</p>
+        </div>
         <RouterLink class="section-link" to="/posts">全部文章</RouterLink>
       </div>
 
-      <div class="post-grid">
+      <div class="post-grid google-flow-grid">
         <RouterLink
           v-for="post in latestPosts"
           :key="post.slug"

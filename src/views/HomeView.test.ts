@@ -29,11 +29,16 @@ describe('HomeView', () => {
     expect(wrapper.get('h1').text()).toContain('构建清爽可靠的')
     expect(wrapper.get('h1').text()).toContain('技术作品')
     expect(wrapper.text()).toContain('马森雨 Blog')
-    expect(wrapper.text()).toContain('专注于AI 融入JAVA GO 业务，项目实践沉淀成技术作品')
+    expect(wrapper.get('[data-test="typed-intro"]').attributes('aria-label')).toBe(
+      '专注于AI 融入JAVA GO 业务，项目实践沉淀成技术作品'
+    )
+    const typedText = wrapper.get('[data-test="typed-intro-text"]')
+    expect(typedText.attributes('data-typing-stream')).toBe('true')
     expect(wrapper.find('[data-test="particle-dome"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('最新文章')
     expect(wrapper.text()).toContain('分类入口')
     expect(wrapper.text()).toContain('精选项目')
+    expect(wrapper.findAll('.google-flow-section').length).toBeGreaterThanOrEqual(4)
     expect(wrapper.findAll('[data-test="post-card"]')).toHaveLength(6)
   })
 })
