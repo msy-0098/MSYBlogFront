@@ -9,7 +9,8 @@ defineProps<{
 <template>
   <RouterLink class="post-card blog-post-card" :to="`/posts/${post.slug}`">
     <span class="post-cover blog-post-cover" aria-hidden="true">
-      <span>{{ post.category.name }}</span>
+      <img v-if="post.cover" :src="post.cover" :alt="post.title" loading="lazy" decoding="async" />
+      <span v-else>{{ post.category.name }}</span>
     </span>
     <span class="post-meta">{{ post.publishedAt }} · {{ post.category.name }} · {{ post.viewCount }} 次阅读</span>
     <span class="post-title">{{ post.title }}</span>

@@ -1,5 +1,21 @@
 <script setup lang="ts">
-import { latestPosts } from '../../data/home'
+import type { PostSummary } from '../../api/blog'
+
+defineProps<{
+  posts: PostSummary[]
+  loading?: boolean
+  error?: string
+}>()
+
+const accents = ['#3B82F6', '#06B6D4', '#8B5CF6', '#F59E0B', '#EF4444', '#10B981']
+
+const handleMouseMove = (event: MouseEvent, target: HTMLElement) => {
+  const rect = target.getBoundingClientRect()
+  const x = event.clientX - rect.left
+  const y = event.clientY - rect.top
+  target.style.setProperty('--mouse-x', `${x}px`)
+  target.style.setProperty('--mouse-y', `${y}px`)
+}
 </script>
 
 <template>
@@ -8,28 +24,45 @@ import { latestPosts } from '../../data/home'
       <div class="section-heading google-flow-heading">
         <div>
           <p class="section-kicker">Writing</p>
-          <h2 id="latest-posts-title">最新文章</h2>
-          <p class="section-lead">把 AI、后端工程和项目复盘沉淀成可以反复阅读的技术记录。</p>
+          <h2 id="latest-posts-title">Latest posts</h2>
+          <p class="section-lead">Backend-published notes, project retrospectives, and engineering practice records.</p>
         </div>
-        <RouterLink class="section-link" to="/posts">全部文章</RouterLink>
+        <RouterLink class="section-link" to="/posts">All posts</RouterLink>
       </div>
 
-      <div class="post-grid google-flow-grid">
+      <p v-if="loading" class="state-line">Loading latest posts...</p>
+      <p v-else-if="error" class="state-line error-line">{{ error }}</p>
+      <p v-else-if="posts.length === 0" class="state-line">No published posts yet.</p>
+
+      <div v-else class="bento-grid google-flow-grid">
         <RouterLink
-          v-for="post in latestPosts"
+          v-for="(post, index) in posts"
           :key="post.slug"
-          class="post-card"
+          :class="[
+            'bento-card',
+            index === 0 ? 'bento-large bento-text-light' : index === 3 ? 'bento-wide' : 'bento-standard'
+          ]"
           :to="`/posts/${post.slug}`"
-          :style="{ '--accent': post.accent }"
+          :style="{ '--accent': accents[index % accents.length] }"
           data-test="post-card"
+          @mousemove="handleMouseMove($event, $event.currentTarget as HTMLElement)"
         >
-          <span class="post-cover" aria-hidden="true" />
-          <span class="post-meta">{{ post.publishedAt }} · {{ post.category }}</span>
-          <span class="post-title">{{ post.title }}</span>
-          <span class="post-summary">{{ post.summary }}</span>
-          <span class="tag-row">
-            <span v-for="tag in post.tags" :key="tag">{{ tag }}</span>
-          </span>
+          <template v-if="index === 0">
+            <div
+              class="bento-image-bg"
+              :style="{ background: `linear-gradient(135deg, ${accents[index % accents.length]}40, #111827)` }"
+            />
+            <div class="bento-image-overlay" />
+          </template>
+
+          <div class="bento-card-inner">
+            <span class="post-meta">{{ post.publishedAt }} · {{ post.category.name }}</span>
+            <span class="post-title">{{ post.title }}</span>
+            <span class="post-summary">{{ post.summary }}</span>
+            <div class="tag-row" style="margin-top: auto;">
+              <span v-for="tag in post.tags" :key="tag.slug">{{ tag.name }}</span>
+            </div>
+          </div>
         </RouterLink>
       </div>
     </div>

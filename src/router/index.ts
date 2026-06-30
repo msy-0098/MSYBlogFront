@@ -4,9 +4,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { ADMIN_UNAUTHORIZED_EVENT } from '../api/admin'
 import AdminLayout from '../components/admin/AdminLayout.vue'
 import { useAuthStore } from '../stores/auth'
-import ArchiveView from '../views/ArchiveView.vue'
-import HomeView from '../views/HomeView.vue'
-import PlaceholderView from '../views/PlaceholderView.vue'
 import AdminDashboardView from '../views/admin/AdminDashboardView.vue'
 import AdminLoginView from '../views/admin/AdminLoginView.vue'
 import AdminPostEditView from '../views/admin/AdminPostEditView.vue'
@@ -14,31 +11,27 @@ import AdminPostsView from '../views/admin/AdminPostsView.vue'
 import AdminProjectsView from '../views/admin/AdminProjectsView.vue'
 import AdminSettingsView from '../views/admin/AdminSettingsView.vue'
 import AdminTaxonomyView from '../views/admin/AdminTaxonomyView.vue'
-import PostDetailView from '../views/PostDetailView.vue'
-import PostListView from '../views/PostListView.vue'
-import SearchView from '../views/SearchView.vue'
-import TaxonomyView from '../views/TaxonomyView.vue'
 
 export const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
-    component: HomeView
+    component: () => import('../views/HomeView.vue')
   },
   {
     path: '/posts',
     name: 'posts',
-    component: PostListView
+    component: () => import('../views/PostListView.vue')
   },
   {
     path: '/posts/:slug',
     name: 'post-detail',
-    component: PostDetailView
+    component: () => import('../views/PostDetailView.vue')
   },
   {
     path: '/categories',
     name: 'categories',
-    component: TaxonomyView,
+    component: () => import('../views/TaxonomyView.vue'),
     props: {
       type: 'categories'
     }
@@ -46,7 +39,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/categories/:slug',
     name: 'category-posts',
-    component: PostListView,
+    component: () => import('../views/PostListView.vue'),
     props: {
       mode: 'category'
     }
@@ -54,7 +47,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/tags',
     name: 'tags',
-    component: TaxonomyView,
+    component: () => import('../views/TaxonomyView.vue'),
     props: {
       type: 'tags'
     }
@@ -62,7 +55,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/tags/:slug',
     name: 'tag-posts',
-    component: PostListView,
+    component: () => import('../views/PostListView.vue'),
     props: {
       mode: 'tag'
     }
@@ -70,30 +63,22 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/archive',
     name: 'archive',
-    component: ArchiveView
+    component: () => import('../views/ArchiveView.vue')
   },
   {
     path: '/projects',
     name: 'projects',
-    component: PlaceholderView,
-    props: {
-      title: '项目',
-      description: '精选项目展示将在后续继续丰富。'
-    }
+    component: () => import('../views/ProjectsView.vue')
   },
   {
     path: '/about',
     name: 'about',
-    component: PlaceholderView,
-    props: {
-      title: '关于',
-      description: '这里会展示个人介绍、技能栈和联系方式。'
-    }
+    component: () => import('../views/AboutView.vue')
   },
   {
     path: '/search',
     name: 'search',
-    component: SearchView
+    component: () => import('../views/SearchView.vue')
   },
   {
     path: '/admin/login',
@@ -179,6 +164,11 @@ export const routes: RouteRecordRaw[] = [
         }
       }
     ]
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: () => import('../views/NotFoundView.vue')
   }
 ]
 

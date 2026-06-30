@@ -15,4 +15,11 @@ describe('scrollMotion', () => {
     expect(fastUp.shiftPx).toBeLessThan(0)
     expect(Math.abs(fastDown.shiftPx)).toBeLessThanOrEqual(16)
   })
+
+  it('can disable blur for constrained devices', () => {
+    const state = getScrollMotionState(420, 32, { disableBlur: true })
+
+    expect(state.blurPx).toBe(0)
+    expect(state.shiftPx).toBeGreaterThan(0)
+  })
 })

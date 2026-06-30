@@ -2,7 +2,7 @@ import type { AxiosAdapter } from 'axios'
 import { describe, expect, it } from 'vitest'
 
 import { createApiClient } from './site'
-import { getArchive, getCategories, getPostDetail, getPosts, searchPosts } from './blog'
+import { getArchive, getCategories, getPostDetail, getPosts, getProjects, searchPosts } from './blog'
 
 describe('blog api', () => {
   it('reads paginated posts from the unified backend response', async () => {
@@ -49,10 +49,27 @@ describe('blog api', () => {
     const client = createApiClient({ adapter })
 
     await getPosts({ category: 'go', tag: 'backend', q: 'SQLite' }, client)
-    await searchPosts('Vue', client)
+    await searchPosts({ q: 'Vue', page: 2, pageSize: 6 }, client)
 
     expect(requests).toContain('/posts?category=go&tag=backend&q=SQLite')
-    expect(requests).toContain('/search?q=Vue')
+    expect(requests).toContain('/search?q=Vue&page=2&pageSize=6')
+  })
+
+  it('reads visible projects from the backend response', async () => {
+    const client = createApiClient({ adapter: adapterFor('/projects') })
+
+    await expect(getProjects(client)).resolves.toEqual([
+      {
+        id: 1,
+        name: 'Blog',
+        description: 'Real project',
+        url: 'https://masenyu.top',
+        cover: '',
+        techStack: ['Go', 'Vue'],
+        sort: 10,
+        visible: true
+      }
+    ])
   })
 })
 
@@ -84,6 +101,23 @@ function adapterFor(expectedUrl: string): AxiosAdapter {
                 posts: [{ title: '用 Go 和 SQLite 搭建轻量博客' }]
               }
             ]
+          }
+        ]
+      }, config)
+    }
+
+    if (expectedUrl === '/projects') {
+      return okEnvelope({
+        list: [
+          {
+            id: 1,
+            name: 'Blog',
+            description: 'Real project',
+            url: 'https://masenyu.top',
+            cover: '',
+            techStack: ['Go', 'Vue'],
+            sort: 10,
+            visible: true
           }
         ]
       }, config)

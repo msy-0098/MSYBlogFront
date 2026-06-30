@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 
+import { getCategories, getPosts, getProjects, type PostSummary, type Project, type Taxonomy } from '../api/blog'
 import { getSiteProfile, type SiteProfile } from '../api/site'
 import CategoryCloud from '../components/home/CategoryCloud.vue'
 import FeaturedProjects from '../components/home/FeaturedProjects.vue'
@@ -8,24 +9,51 @@ import HomeHero from '../components/home/HomeHero.vue'
 import LatestPosts from '../components/home/LatestPosts.vue'
 
 const fallbackProfile: SiteProfile = {
-  siteTitle: '马森雨的技术博客',
-  subtitle: '用 Go、Vue 和 AI 工具构建清爽可靠的技术作品',
-  owner: '马森雨',
+  siteTitle: 'MSY Blog',
+  subtitle: 'Go, Vue and AI practice notes',
+  owner: 'MSY',
   domain: 'masenyu.top',
-  description: '记录项目实践、技术复盘和持续成长。',
-  navItems: ['首页', '文章', '分类', '项目', '关于']
+  description: 'Real project notes, technical retrospectives, and continuous growth.',
+  navItems: ['Home', 'Posts', 'Categories', 'Projects', 'About']
 }
 
 const profile = ref<SiteProfile>(fallbackProfile)
-const apiStatus = ref('正在连接 /api/site')
+const apiStatus = ref('Connecting /api/site')
+const posts = ref<PostSummary[]>([])
+const categories = ref<Taxonomy[]>([])
+const projects = ref<Project[]>([])
+const contentLoading = ref(true)
+const contentError = ref('')
+
+async function loadHomeContent() {
+  contentLoading.value = true
+  contentError.value = ''
+
+  try {
+    const [postPage, categoryList, projectList] = await Promise.all([
+      getPosts({ page: 1, pageSize: 6 }),
+      getCategories(),
+      getProjects()
+    ])
+    posts.value = postPage.list
+    categories.value = categoryList
+    projects.value = projectList.slice(0, 3)
+  } catch (err) {
+    contentError.value = err instanceof Error ? err.message : 'Homepage content failed to load'
+  } finally {
+    contentLoading.value = false
+  }
+}
 
 onMounted(async () => {
   try {
     profile.value = await getSiteProfile()
-    apiStatus.value = '/api/site 已连接'
+    apiStatus.value = '/api/site connected'
   } catch {
-    apiStatus.value = '后端未启动，已显示本地默认信息'
+    apiStatus.value = 'Backend unavailable, using local fallback profile'
   }
+
+  await loadHomeContent()
 })
 </script>
 
@@ -36,9 +64,9 @@ onMounted(async () => {
       :subtitle="profile.subtitle"
       :description="profile.description"
     />
-    <LatestPosts />
-    <CategoryCloud />
-    <FeaturedProjects />
+    <LatestPosts :posts="posts" :loading="contentLoading" :error="contentError" />
+    <CategoryCloud :categories="categories" :loading="contentLoading" :error="contentError" />
+    <FeaturedProjects :projects="projects" :loading="contentLoading" :error="contentError" />
 
     <section class="about-strip google-flow-section" aria-labelledby="about-strip-title">
       <div>

@@ -16,6 +16,23 @@ let lastScrollY = 0
 let lastScrollTime = 0
 let settleFrame = 0
 
+function shouldReduceScrollEffects() {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    return true
+  }
+
+  const navigatorInfo = navigator as Navigator & {
+    deviceMemory?: number
+    hardwareConcurrency?: number
+  }
+
+  return (
+    (navigatorInfo.deviceMemory !== undefined && navigatorInfo.deviceMemory <= 4) ||
+    (navigatorInfo.hardwareConcurrency !== undefined && navigatorInfo.hardwareConcurrency <= 4) ||
+    window.matchMedia?.('(pointer: coarse)').matches === true
+  )
+}
+
 function settleMotion() {
   motionBlur.value += (0 - motionBlur.value) * 0.18
   motionShift.value += (0 - motionShift.value) * 0.18
@@ -31,7 +48,7 @@ function settleMotion() {
 }
 
 function handleScrollMotion() {
-  if (!isHomeRoute.value || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+  if (!isHomeRoute.value || shouldReduceScrollEffects()) {
     motionBlur.value = 0
     motionShift.value = 0
     lastScrollY = window.scrollY
@@ -41,7 +58,9 @@ function handleScrollMotion() {
 
   const now = performance.now()
   const scrollY = window.scrollY
-  const motion = getScrollMotionState(scrollY - lastScrollY, now - lastScrollTime)
+  const motion = getScrollMotionState(scrollY - lastScrollY, now - lastScrollTime, {
+    disableBlur: shouldReduceScrollEffects()
+  })
   lastScrollY = scrollY
   lastScrollTime = now
   motionBlur.value = motion.blurPx

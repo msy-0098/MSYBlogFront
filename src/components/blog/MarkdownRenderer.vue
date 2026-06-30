@@ -29,6 +29,9 @@ const fallbackRender: RenderRule = (tokens, index, options, _env, self) =>
 const defaultRender: RenderRule =
   markdown.renderer.rules.link_open ??
   fallbackRender
+const defaultImageRender: RenderRule =
+  markdown.renderer.rules.image ??
+  fallbackRender
 
 markdown.renderer.rules.link_open = (tokens, index, options, env, self) => {
   const token = tokens[index]
@@ -40,6 +43,14 @@ markdown.renderer.rules.link_open = (tokens, index, options, env, self) => {
   }
 
   return defaultRender(tokens, index, options, env, self)
+}
+
+markdown.renderer.rules.image = (tokens, index, options, env, self) => {
+  const token = tokens[index]
+  token.attrSet('loading', 'lazy')
+  token.attrSet('decoding', 'async')
+
+  return defaultImageRender(tokens, index, options, env, self)
 }
 
 const rendered = computed(() => markdown.render(props.content || ''))

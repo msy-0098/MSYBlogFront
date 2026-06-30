@@ -8,9 +8,9 @@ describe('MarkdownRenderer', () => {
     const wrapper = mount(MarkdownRenderer, {
       props: {
         content: [
-          '# 标题',
+          '# Title',
           '',
-          '正文里有 [外链](https://example.com)。',
+          'Body with [external link](https://example.com).',
           '',
           '```go',
           'fmt.Println("hi")',
@@ -19,8 +19,20 @@ describe('MarkdownRenderer', () => {
       }
     })
 
-    expect(wrapper.find('h1').text()).toBe('标题')
+    expect(wrapper.find('h1').text()).toBe('Title')
     expect(wrapper.find('pre code').text()).toContain('fmt.Println')
     expect(wrapper.find('a').attributes('target')).toBe('_blank')
+  })
+
+  it('adds lazy loading attributes to markdown images', () => {
+    const wrapper = mount(MarkdownRenderer, {
+      props: {
+        content: '![cover](/uploads/cover.png)'
+      }
+    })
+
+    const image = wrapper.get('img')
+    expect(image.attributes('loading')).toBe('lazy')
+    expect(image.attributes('decoding')).toBe('async')
   })
 })

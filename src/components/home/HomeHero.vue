@@ -14,25 +14,39 @@ const typedOutput = ref('')
 const typedCharacters = Array.from(typedIntro)
 const typedDisplay = computed(() => typedOutput.value || '\u00a0')
 
-let typingTimer: ReturnType<typeof setTimeout> | undefined
+let animationFrameId: number | undefined
+let lastFrameTime = 0
+let currentIndex = 0
+let currentDelay = 0
 
-function clearTypingTimer() {
-  if (typingTimer) {
-    clearTimeout(typingTimer)
-    typingTimer = undefined
+function clearTyping() {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
+    animationFrameId = undefined
   }
 }
 
-function typeNextCharacter(index = 0) {
-  typedOutput.value = typedCharacters.slice(0, index).join('')
-
-  if (index > typedCharacters.length) {
-    return
+function typeNextCharacter(timestamp: number) {
+  if (lastFrameTime === 0) {
+    lastFrameTime = timestamp
   }
 
-  const currentCharacter = typedCharacters[index - 1] ?? ''
-  const delay = /[，。,.]/.test(currentCharacter) ? 180 : 46 + (index % 3) * 14
-  typingTimer = setTimeout(() => typeNextCharacter(index + 1), delay)
+  const elapsed = timestamp - lastFrameTime
+
+  if (elapsed >= currentDelay) {
+    currentIndex++
+    typedOutput.value = typedCharacters.slice(0, currentIndex).join('')
+    lastFrameTime = timestamp
+
+    if (currentIndex > typedCharacters.length) {
+      return
+    }
+
+    const currentCharacter = typedCharacters[currentIndex - 1] ?? ''
+    currentDelay = /[，。,.]/.test(currentCharacter) ? 180 : 46 + (currentIndex % 3) * 14
+  }
+
+  animationFrameId = requestAnimationFrame(typeNextCharacter)
 }
 
 onMounted(() => {
@@ -44,10 +58,13 @@ onMounted(() => {
     return
   }
 
-  typeNextCharacter()
+  // Delay the start of typewriter effect slightly to allow First Contentful Paint (FCP) to complete smoothly
+  setTimeout(() => {
+    animationFrameId = requestAnimationFrame(typeNextCharacter)
+  }, 400)
 })
 
-onBeforeUnmount(clearTypingTimer)
+onBeforeUnmount(clearTyping)
 </script>
 
 <template>

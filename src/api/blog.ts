@@ -43,6 +43,17 @@ export interface ListResult<T> {
   list: T[]
 }
 
+export interface Project {
+  id: number
+  name: string
+  description: string
+  url: string
+  cover: string
+  techStack: string[]
+  sort: number
+  visible: boolean
+}
+
 export interface ArchiveMonth {
   month: number
   posts: PostSummary[]
@@ -107,15 +118,29 @@ export async function getTagPosts(
   )
 }
 
+export interface SearchQuery {
+  q: string
+  page?: number
+  pageSize?: number
+}
+
 export async function searchPosts(
-  q: string,
+  query: SearchQuery | string,
   client: AxiosInstance = apiClient
 ): Promise<PageResult<PostSummary>> {
-  return unwrap((await client.get<ApiEnvelope<PageResult<PostSummary>>>('/search', { params: { q } })).data)
+  const params = typeof query === 'string' ? { q: query } : query
+
+  return unwrap((await client.get<ApiEnvelope<PageResult<PostSummary>>>('/search', { params })).data)
 }
 
 export async function getArchive(client: AxiosInstance = apiClient): Promise<ArchiveYear[]> {
   const result = unwrap((await client.get<ApiEnvelope<ListResult<ArchiveYear>>>('/archive')).data)
+
+  return result.list
+}
+
+export async function getProjects(client: AxiosInstance = apiClient): Promise<Project[]> {
+  const result = unwrap((await client.get<ApiEnvelope<ListResult<Project>>>('/projects')).data)
 
   return result.list
 }
