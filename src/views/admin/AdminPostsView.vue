@@ -80,7 +80,7 @@ function formatDate(value: string): string {
   <section class="admin-page">
     <div class="admin-page-heading">
       <div>
-        <p class="section-kicker">Posts</p>
+        <p class="section-kicker">内容</p>
         <h1>文章管理</h1>
       </div>
 

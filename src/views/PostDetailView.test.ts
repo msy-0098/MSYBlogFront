@@ -1,6 +1,7 @@
 import { flushPromises, mount, RouterLinkStub } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { sendVisitorEmailCode } from '../api/blog'
 import PostDetailView from './PostDetailView.vue'
 
 const routeState = {
@@ -79,5 +80,27 @@ describe('PostDetailView', () => {
 
     expect(wrapper.text()).toContain('邮箱验证码')
     expect(wrapper.find('[data-test="visitor-email"]').exists()).toBe(true)
+  })
+
+  it('sends verification code to the email typed in the registration form', async () => {
+    const wrapper = mount(PostDetailView, {
+      global: {
+        stubs: {
+          RouterLink: RouterLinkStub,
+          MarkdownRenderer: {
+            props: ['content'],
+            template: '<article class="markdown-body">{{ content }}</article>'
+          }
+        }
+      }
+    })
+
+    await flushPromises()
+    await wrapper.find('[data-test="open-comment-auth"]').trigger('click')
+    await wrapper.find('[data-test="visitor-email"]').setValue('new-reader@example.com')
+    await wrapper.find('[data-test="send-visitor-code"]').trigger('click')
+    await flushPromises()
+
+    expect(sendVisitorEmailCode).toHaveBeenCalledWith('new-reader@example.com')
   })
 })

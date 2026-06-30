@@ -11,7 +11,7 @@ onMounted(async () => {
   try {
     projects.value = await getProjects()
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Projects failed to load'
+    error.value = err instanceof Error ? err.message : '项目加载失败'
   } finally {
     loading.value = false
   }
@@ -21,12 +21,12 @@ onMounted(async () => {
 <template>
   <section class="reading-page">
     <div class="reading-heading">
-      <p class="section-kicker">Builds</p>
-      <h1>Projects</h1>
-      <p>Project entries come from the backend project manager.</p>
+      <p class="section-kicker">作品</p>
+      <h1>项目作品</h1>
+      <p>项目条目来自后台项目管理，展示真实实践和技术栈。</p>
     </div>
 
-    <p v-if="loading" class="state-line">Loading projects...</p>
+    <p v-if="loading" class="state-line">正在加载项目...</p>
     <p v-else-if="error" class="state-line error-line">{{ error }}</p>
 
     <div v-else-if="projects.length" class="project-grid reading-grid">
@@ -50,6 +50,6 @@ onMounted(async () => {
       </a>
     </div>
 
-    <p v-else class="state-line">No visible projects yet.</p>
+    <p v-else class="state-line">暂时还没有公开展示的项目。</p>
   </section>
 </template>

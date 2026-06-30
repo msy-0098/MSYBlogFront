@@ -33,12 +33,12 @@ const form = reactive({
 const copy = computed(() =>
   props.mode === 'categories'
     ? {
-        kicker: 'Categories',
+        kicker: '分类',
         title: '分类管理',
         itemName: '分类'
       }
     : {
-        kicker: 'Tags',
+        kicker: '标签',
         title: '标签管理',
         itemName: '标签'
       }

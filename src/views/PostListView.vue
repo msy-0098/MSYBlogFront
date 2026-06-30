@@ -36,13 +36,13 @@ const totalPages = computed(() => Math.max(1, Math.ceil((page.value?.total ?? 0)
 const taxonomyName = computed(() => taxonomyItems.value.find((item) => item.slug === slug.value)?.name || slug.value)
 const title = computed(() => {
   if (props.mode === 'category') {
-    return `Category: ${taxonomyName.value}`
+    return `分类：${taxonomyName.value}`
   }
   if (props.mode === 'tag') {
-    return `Tag: ${taxonomyName.value}`
+    return `标签：${taxonomyName.value}`
   }
 
-  return 'Posts'
+  return '全部文章'
 })
 
 async function loadTaxonomyNames() {
@@ -70,7 +70,7 @@ async function loadPosts() {
       page.value = await getPosts(params)
     }
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Posts failed to load'
+    error.value = err instanceof Error ? err.message : '文章加载失败'
   } finally {
     loading.value = false
   }
@@ -97,12 +97,12 @@ watch(
 <template>
   <section class="reading-page">
     <div class="reading-heading">
-      <p class="section-kicker">Writing</p>
+      <p class="section-kicker">文章</p>
       <h1>{{ title }}</h1>
-      <p>Published notes ordered by time, backed by the database.</p>
+      <p>按发布时间整理的真实笔记，数据来自 MySQL 持久化存储。</p>
     </div>
 
-    <p v-if="loading" class="state-line">Loading posts...</p>
+    <p v-if="loading" class="state-line">正在加载文章...</p>
     <p v-else-if="error" class="state-line error-line">{{ error }}</p>
 
     <template v-else>
@@ -110,12 +110,12 @@ watch(
         <PostCard v-for="post in page.list" :key="post.slug" :post="post" />
       </div>
 
-      <p v-else class="state-line">No posts yet.</p>
+      <p v-else class="state-line">暂时还没有文章。</p>
 
-      <nav v-if="page && page.total > pageSize" class="pagination-bar" aria-label="Post pagination">
-        <button type="button" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">Previous</button>
-        <span>Page {{ currentPage }} / {{ totalPages }}</span>
-        <button type="button" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">Next</button>
+      <nav v-if="page && page.total > pageSize" class="pagination-bar" aria-label="文章分页">
+        <button type="button" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">上一页</button>
+        <span>第 {{ currentPage }} / {{ totalPages }} 页</span>
+        <button type="button" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">下一页</button>
       </nav>
     </template>
   </section>

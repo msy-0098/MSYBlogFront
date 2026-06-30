@@ -1,88 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 import AppFooter from './components/layout/AppFooter.vue'
 import AppHeader from './components/layout/AppHeader.vue'
-import { getScrollMotionState } from './utils/scrollMotion'
 
 const route = useRoute()
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))
-const isHomeRoute = computed(() => route.path === '/')
-const motionBlur = ref(0)
-const motionShift = ref(0)
-
-let lastScrollY = 0
-let lastScrollTime = 0
-let settleFrame = 0
-
-function shouldReduceScrollEffects() {
-  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-    return true
-  }
-
-  const navigatorInfo = navigator as Navigator & {
-    deviceMemory?: number
-    hardwareConcurrency?: number
-  }
-
-  return (
-    (navigatorInfo.deviceMemory !== undefined && navigatorInfo.deviceMemory <= 4) ||
-    (navigatorInfo.hardwareConcurrency !== undefined && navigatorInfo.hardwareConcurrency <= 4) ||
-    window.matchMedia?.('(pointer: coarse)').matches === true
-  )
-}
-
-function settleMotion() {
-  motionBlur.value += (0 - motionBlur.value) * 0.18
-  motionShift.value += (0 - motionShift.value) * 0.18
-
-  if (Math.abs(motionBlur.value) < 0.04 && Math.abs(motionShift.value) < 0.04) {
-    motionBlur.value = 0
-    motionShift.value = 0
-    settleFrame = 0
-    return
-  }
-
-  settleFrame = window.requestAnimationFrame(settleMotion)
-}
-
-function handleScrollMotion() {
-  if (!isHomeRoute.value || shouldReduceScrollEffects()) {
-    motionBlur.value = 0
-    motionShift.value = 0
-    lastScrollY = window.scrollY
-    lastScrollTime = performance.now()
-    return
-  }
-
-  const now = performance.now()
-  const scrollY = window.scrollY
-  const motion = getScrollMotionState(scrollY - lastScrollY, now - lastScrollTime, {
-    disableBlur: shouldReduceScrollEffects()
-  })
-  lastScrollY = scrollY
-  lastScrollTime = now
-  motionBlur.value = motion.blurPx
-  motionShift.value = motion.shiftPx
-
-  if (!settleFrame) {
-    settleFrame = window.requestAnimationFrame(settleMotion)
-  }
-}
-
-onMounted(() => {
-  lastScrollY = window.scrollY
-  lastScrollTime = performance.now()
-  window.addEventListener('scroll', handleScrollMotion, { passive: true })
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('scroll', handleScrollMotion)
-  if (settleFrame) {
-    window.cancelAnimationFrame(settleFrame)
-  }
-})
 </script>
 
 <template>
@@ -90,10 +14,10 @@ onBeforeUnmount(() => {
 
   <main
     class="app-motion-shell"
-    :class="{ 'admin-root-main': isAdminRoute, 'is-scroll-blurring': isHomeRoute }"
+    :class="{ 'admin-root-main': isAdminRoute }"
     :style="{
-      '--scroll-blur': `${motionBlur}px`,
-      '--scroll-shift': `${motionShift}px`
+      '--scroll-blur': '0px',
+      '--scroll-shift': '0px'
     }"
   >
     <RouterView />

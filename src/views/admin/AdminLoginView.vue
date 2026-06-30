@@ -41,7 +41,7 @@ function resolveAdminRedirect(value: unknown): string {
 <template>
   <main class="admin-login-page">
     <section class="admin-login-panel">
-      <p class="section-kicker">Admin</p>
+      <p class="section-kicker">管理端</p>
       <h1>后台登录</h1>
       <p>维护文章、项目和站点信息。</p>
 

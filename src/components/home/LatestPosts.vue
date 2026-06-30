@@ -23,16 +23,16 @@ const handleMouseMove = (event: MouseEvent, target: HTMLElement) => {
     <div class="section-inner">
       <div class="section-heading google-flow-heading">
         <div>
-          <p class="section-kicker">Writing</p>
-          <h2 id="latest-posts-title">Latest posts</h2>
-          <p class="section-lead">Backend-published notes, project retrospectives, and engineering practice records.</p>
+          <p class="section-kicker">文章</p>
+          <h2 id="latest-posts-title">最新文章</h2>
+          <p class="section-lead">来自后台发布的技术笔记、项目复盘和工程实践记录。</p>
         </div>
-        <RouterLink class="section-link" to="/posts">All posts</RouterLink>
+        <RouterLink class="section-link" to="/posts">查看全部</RouterLink>
       </div>
 
-      <p v-if="loading" class="state-line">Loading latest posts...</p>
+      <p v-if="loading" class="state-line">正在加载最新文章...</p>
       <p v-else-if="error" class="state-line error-line">{{ error }}</p>
-      <p v-else-if="posts.length === 0" class="state-line">No published posts yet.</p>
+      <p v-else-if="posts.length === 0" class="state-line">暂时还没有已发布文章。</p>
 
       <div v-else class="bento-grid google-flow-grid">
         <RouterLink

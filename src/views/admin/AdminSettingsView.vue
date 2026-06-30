@@ -53,7 +53,7 @@ async function saveSettings() {
   <section class="admin-page">
     <div class="admin-page-heading">
       <div>
-        <p class="section-kicker">Settings</p>
+        <p class="section-kicker">配置</p>
         <h1>站点设置</h1>
       </div>
 

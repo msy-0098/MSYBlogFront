@@ -28,7 +28,7 @@ onMounted(async () => {
 <template>
   <section class="reading-page">
     <div class="reading-heading">
-      <p class="section-kicker">Topics</p>
+      <p class="section-kicker">主题</p>
       <h1>{{ title }}</h1>
       <p>从主题入口进入文章，把同一类实践放在一起复盘。</p>
     </div>

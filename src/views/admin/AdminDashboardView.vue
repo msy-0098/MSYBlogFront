@@ -53,21 +53,13 @@ async function loadDashboard() {
   }
 }
 
-// 鼠标光效计算
-const handleMouseMove = (e: MouseEvent, target: HTMLElement) => {
-  const rect = target.getBoundingClientRect()
-  const x = e.clientX - rect.left
-  const y = e.clientY - rect.top
-  target.style.setProperty('--mouse-x', `${x}px`)
-  target.style.setProperty('--mouse-y', `${y}px`)
-}
 </script>
 
 <template>
   <section class="admin-page">
     <div class="admin-page-heading">
       <div>
-        <p class="section-kicker">Workspace</p>
+        <p class="section-kicker">总览</p>
         <h1>管理工作台</h1>
       </div>
       <RouterLink class="admin-link-button admin-link-button-primary" to="/">
@@ -76,75 +68,68 @@ const handleMouseMove = (e: MouseEvent, target: HTMLElement) => {
       </RouterLink>
     </div>
 
-    <div v-loading="loading" class="bento-grid" style="margin-top: 2rem;">
-      <article
-        class="bento-card bento-wide"
-        style="padding: 2.5rem; background: linear-gradient(135deg, #4285F4, #1A73E8); color: white;"
-        @mousemove="handleMouseMove($event, $event.currentTarget as HTMLElement)"
-      >
-        <div style="position: relative; z-index: 1;">
-          <h2 style="color: white; font-size: 2.2rem; margin-bottom: 0.5rem;">管理端总览</h2>
-          <p style="color: rgba(255,255,255,0.85); font-size: 1.1rem; max-width: 400px;">
-            访问统计、评论统计和 AI 分析都在这里汇总啦。
-          </p>
+    <div v-loading="loading" class="admin-dashboard-stack">
+      <article class="admin-brief-panel">
+        <div>
+          <span>今日视图</span>
+          <h2>内容、访问、评论一屏掌握</h2>
+          <p>访问统计、评论统计和 AI 分析都在这里汇总，方便快速判断站点状态。</p>
         </div>
+        <strong>{{ dashboard?.aiAnalysis.mode === 'configured' ? 'AI 已接入' : '本地分析' }}</strong>
       </article>
 
-      <article
-        v-for="(metric, index) in metrics"
-        :key="metric.label"
-        class="bento-card bento-standard admin-metric-bento"
-        :style="{ '--metric-color': metric.color }"
-        @mousemove="handleMouseMove($event, $event.currentTarget as HTMLElement)"
-      >
-        <div class="metric-icon-wrap" :style="{ color: metric.color }">
-          <div class="metric-icon-bg" :style="{ backgroundColor: metric.color + '20' }"></div>
-          <el-icon><component :is="metric.icon" /></el-icon>
-        </div>
-        <div class="metric-content">
-          <span>{{ metric.label }}</span>
-          <strong>{{ metric.value }}</strong>
-          <p>{{ metric.detail }}</p>
-        </div>
-      </article>
-
-      <article
-        class="bento-card bento-wide admin-analysis-card"
-        @mousemove="handleMouseMove($event, $event.currentTarget as HTMLElement)"
-      >
-        <div class="admin-analysis-heading">
-          <el-icon><DataAnalysis /></el-icon>
-          <div>
-            <span>AI 分析</span>
-            <strong>{{ dashboard?.aiAnalysis.mode === 'configured' ? '模型分析' : '本地分析' }}</strong>
+      <div class="admin-dashboard-grid">
+        <article
+          v-for="metric in metrics"
+          :key="metric.label"
+          class="admin-metric-card"
+          :style="{ '--metric-color': metric.color }"
+        >
+          <div class="metric-icon-wrap" :style="{ color: metric.color }">
+            <div class="metric-icon-bg" :style="{ backgroundColor: metric.color + '20' }"></div>
+            <el-icon><component :is="metric.icon" /></el-icon>
           </div>
-        </div>
-        <p>{{ dashboard?.aiAnalysis.summary || '正在等待数据呀...' }}</p>
-        <ul>
-          <li v-for="signal in dashboard?.aiAnalysis.signals || []" :key="signal">{{ signal }}</li>
-        </ul>
-      </article>
-
-      <article
-        class="bento-card bento-wide admin-recent-comments"
-        @mousemove="handleMouseMove($event, $event.currentTarget as HTMLElement)"
-      >
-        <div class="admin-analysis-heading">
-          <el-icon><ChatDotRound /></el-icon>
-          <div>
-            <span>评论动态</span>
-            <strong>近期评论</strong>
+          <div class="metric-content">
+            <span>{{ metric.label }}</span>
+            <strong>{{ metric.value }}</strong>
+            <p>{{ metric.detail }}</p>
           </div>
-        </div>
-        <div class="admin-comment-feed">
-          <p v-if="!dashboard?.recentComments.length">暂时还没有评论哦。</p>
-          <article v-for="comment in dashboard?.recentComments || []" :key="comment.id">
-            <strong>{{ comment.author.nickname || comment.author.email }}</strong>
-            <span>{{ comment.postTitle || '文章' }}</span>
-            <p>{{ comment.content }}</p>
-          </article>
-        </div>
-      </article>
+        </article>
+      </div>
+
+      <div class="admin-dashboard-columns">
+        <article class="admin-panel admin-analysis-card">
+          <div class="admin-analysis-heading">
+            <el-icon><DataAnalysis /></el-icon>
+            <div>
+              <span>AI 分析</span>
+              <strong>{{ dashboard?.aiAnalysis.mode === 'configured' ? '模型分析' : '本地分析' }}</strong>
+            </div>
+          </div>
+          <p>{{ dashboard?.aiAnalysis.summary || '正在等待数据呀...' }}</p>
+          <ul>
+            <li v-for="signal in dashboard?.aiAnalysis.signals || []" :key="signal">{{ signal }}</li>
+          </ul>
+        </article>
+
+        <article class="admin-panel admin-recent-comments">
+          <div class="admin-analysis-heading">
+            <el-icon><ChatDotRound /></el-icon>
+            <div>
+              <span>评论动态</span>
+              <strong>近期评论</strong>
+            </div>
+          </div>
+          <div class="admin-comment-feed">
+            <p v-if="!dashboard?.recentComments.length">暂时还没有评论哦。</p>
+            <article v-for="comment in dashboard?.recentComments || []" :key="comment.id">
+              <strong>{{ comment.author.nickname || comment.author.email }}</strong>
+              <span>{{ comment.postTitle || '文章' }}</span>
+              <p>{{ comment.content }}</p>
+            </article>
+          </div>
+        </article>
+      </div>
     </div>
   </section>
 </template>

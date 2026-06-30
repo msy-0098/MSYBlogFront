@@ -9,12 +9,12 @@ import HomeHero from '../components/home/HomeHero.vue'
 import LatestPosts from '../components/home/LatestPosts.vue'
 
 const fallbackProfile: SiteProfile = {
-  siteTitle: 'MSY Blog',
-  subtitle: 'Go, Vue and AI practice notes',
-  owner: 'MSY',
+  siteTitle: '马森雨的技术博客',
+  subtitle: 'Go、Vue 与 AI 工具的真实项目笔记',
+  owner: '马森雨',
   domain: 'masenyu.top',
-  description: 'Real project notes, technical retrospectives, and continuous growth.',
-  navItems: ['Home', 'Posts', 'Categories', 'Projects', 'About']
+  description: '记录项目实践、技术复盘和持续成长。',
+  navItems: ['首页', '文章', '分类', '项目', '关于']
 }
 
 const profile = ref<SiteProfile>(fallbackProfile)
@@ -39,7 +39,7 @@ async function loadHomeContent() {
     categories.value = categoryList
     projects.value = projectList.slice(0, 3)
   } catch (err) {
-    contentError.value = err instanceof Error ? err.message : 'Homepage content failed to load'
+    contentError.value = err instanceof Error ? err.message : '首页内容加载失败'
   } finally {
     contentLoading.value = false
   }
@@ -48,9 +48,9 @@ async function loadHomeContent() {
 onMounted(async () => {
   try {
     profile.value = await getSiteProfile()
-    apiStatus.value = '/api/site connected'
+    apiStatus.value = '站点配置已连接'
   } catch {
-    apiStatus.value = 'Backend unavailable, using local fallback profile'
+    apiStatus.value = '后端暂不可用，正在使用本地兜底资料'
   }
 
   await loadHomeContent()
@@ -70,7 +70,7 @@ onMounted(async () => {
 
     <section class="about-strip google-flow-section" aria-labelledby="about-strip-title">
       <div>
-        <p class="section-kicker">About</p>
+        <p class="section-kicker">关于</p>
         <h2 id="about-strip-title">关于我</h2>
         <p class="section-lead">像产品官网一样呈现个人技术品牌，也像工程日志一样保留真实实践。</p>
         <p>{{ profile.description }}</p>

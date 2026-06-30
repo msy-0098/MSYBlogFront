@@ -75,7 +75,7 @@ function formatDate(value: string): string {
   <section class="admin-page">
     <div class="admin-page-heading">
       <div>
-        <p class="section-kicker">Comments</p>
+        <p class="section-kicker">互动</p>
         <h1>评论管理</h1>
       </div>
 

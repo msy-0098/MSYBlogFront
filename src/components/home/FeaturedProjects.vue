@@ -15,16 +15,16 @@ const accents = ['#3B82F6', '#8B5CF6', '#F59E0B', '#10B981']
     <div class="section-inner">
       <div class="section-heading google-flow-heading">
         <div>
-          <p class="section-kicker">Builds</p>
-          <h2 id="featured-projects-title">Featured projects</h2>
-          <p class="section-lead">Visible projects managed from the backend, ordered by sort weight and update time.</p>
+          <p class="section-kicker">作品</p>
+          <h2 id="featured-projects-title">精选项目</h2>
+          <p class="section-lead">由后台维护的真实项目作品，按展示权重和更新时间排序。</p>
         </div>
-        <RouterLink class="section-link" to="/projects">Project list</RouterLink>
+        <RouterLink class="section-link" to="/projects">项目列表</RouterLink>
       </div>
 
-      <p v-if="loading" class="state-line">Loading projects...</p>
+      <p v-if="loading" class="state-line">正在加载项目...</p>
       <p v-else-if="error" class="state-line error-line">{{ error }}</p>
-      <p v-else-if="projects.length === 0" class="state-line">No visible projects yet.</p>
+      <p v-else-if="projects.length === 0" class="state-line">暂时还没有公开展示的项目。</p>
 
       <div v-else class="project-grid google-flow-grid">
         <a

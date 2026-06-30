@@ -60,7 +60,7 @@ describe('App scroll motion', () => {
     expect(main.attributes('style')).toContain('--scroll-blur: 0px')
   })
 
-  it('uses scroll velocity for the homepage section transition blur', async () => {
+  it('keeps the homepage main surface free of global blur for faster navigation', async () => {
     const wrapper = mountApp()
 
     vi.mocked(performance.now).mockReturnValue(32)
@@ -69,7 +69,7 @@ describe('App scroll motion', () => {
     await nextTick()
 
     const main = wrapper.get('main')
-    expect(main.classes()).toContain('is-scroll-blurring')
-    expect(main.attributes('style')).toContain('--scroll-blur: 12px')
+    expect(main.classes()).not.toContain('is-scroll-blurring')
+    expect(main.attributes('style')).toContain('--scroll-blur: 0px')
   })
 })

@@ -218,8 +218,9 @@ watch(slug, loadPost)
       <section class="comment-section" aria-label="文章评论">
         <div class="comment-heading">
           <div>
-            <p class="section-kicker">Comments</p>
-            <h2>评论</h2>
+            <p class="section-kicker">讨论</p>
+            <h2>读者评论</h2>
+            <p>用邮箱登录后就能留下想法，评论会同步保存到 MySQL。</p>
           </div>
           <button
             v-if="!isVisitorLoggedIn"
@@ -270,7 +271,7 @@ watch(slug, loadPost)
           <div class="visitor-auth-card">
             <div class="visitor-auth-header">
               <div>
-                <p class="section-kicker">Account</p>
+                <p class="section-kicker">账号</p>
                 <h3>{{ authMode === 'login' ? '邮箱登录' : '邮箱验证码注册' }}</h3>
               </div>
               <button type="button" @click="closeAuthPanel">关闭</button>
@@ -292,7 +293,7 @@ watch(slug, loadPost)
               <span>验证码</span>
               <div class="visitor-code-row">
                 <input v-model="authForm.code" autocomplete="one-time-code" />
-                <button type="button" :disabled="codeSending" @click="sendCode">
+                <button data-test="send-visitor-code" type="button" :disabled="codeSending" @click="sendCode">
                   {{ codeSending ? '发送中' : '发送验证码' }}
                 </button>
               </div>
@@ -303,6 +304,7 @@ watch(slug, loadPost)
             </button>
             <button
               class="visitor-switch"
+              data-test="switch-visitor-auth-mode"
               type="button"
               @click="authMode = authMode === 'login' ? 'register' : 'login'"
             >

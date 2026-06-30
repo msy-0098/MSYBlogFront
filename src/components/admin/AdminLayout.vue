@@ -6,6 +6,7 @@ import {
   FolderOpened,
   House,
   PriceTag,
+  Search,
   Setting,
   SwitchButton
 } from '@element-plus/icons-vue'
@@ -19,6 +20,11 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const activeRoute = computed(() => route.path)
+const currentNav = computed(() =>
+  [...navItems]
+    .sort((left, right) => right.path.length - left.path.length)
+    .find((item) => route.path === item.path || route.path.startsWith(`${item.path}/`))
+)
 
 const navItems = [
   { path: '/admin', label: '工作台', icon: House },
@@ -38,12 +44,12 @@ function logout() {
 
 <template>
   <el-container class="admin-shell">
-    <el-aside class="admin-sidebar" width="280px">
+    <el-aside class="admin-sidebar" width="248px">
       <RouterLink class="admin-brand" to="/admin">
         <span class="admin-brand-mark"></span>
         <div class="admin-brand-text">
-          <strong>Workspace</strong>
-          <small>Admin Panel</small>
+          <strong>博客管理台</strong>
+          <small>内容 · 评论 · 统计</small>
         </div>
       </RouterLink>
 
@@ -63,12 +69,16 @@ function logout() {
 
     <el-container class="admin-content-wrapper">
       <el-header class="admin-topbar" height="72px">
+        <div class="topbar-context">
+          <span>当前模块</span>
+          <strong>{{ currentNav?.label || '管理台' }}</strong>
+        </div>
+
         <div class="topbar-search">
-           <!-- Placeholder for global search or breadcrumbs -->
-           <div class="mock-search-bar">
-             <el-icon><Search /></el-icon>
-             <span>Search or type a command... (Ctrl+K)</span>
-           </div>
+          <div class="mock-search-bar" aria-label="后台检索入口">
+            <el-icon><Search /></el-icon>
+            <span>检索文章、评论或设置...</span>
+          </div>
         </div>
 
         <div class="topbar-actions">

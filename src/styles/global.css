@@ -141,13 +141,8 @@ main {
 }
 
 .app-motion-shell.is-scroll-blurring {
-  filter: blur(var(--scroll-blur));
-  transform: translate3d(0, var(--scroll-shift), 0);
-  transform-origin: 50% 50%;
-  transition:
-    filter 120ms ease-out,
-    transform 120ms ease-out;
-  will-change: filter, transform;
+  filter: none;
+  transform: none;
 }
 
 .admin-root-main {
@@ -247,14 +242,14 @@ main {
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 h1,
 h2 {
   margin: 0;
   color: #202124;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 h1 {
@@ -269,13 +264,13 @@ h1 span {
 
 h1 .title-light {
   font-weight: 400;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   color: #5F6368;
 }
 
 h1 .title-bold {
   font-weight: 700;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   color: #202124;
 }
 
@@ -291,7 +286,7 @@ h2 {
   font-size: clamp(1.08rem, 1.6vw, 1.38rem);
   font-weight: 500;
   line-height: 1.6;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .typed-intro {
@@ -437,9 +432,10 @@ h2 {
   inset: clamp(2rem, 4vw, 4rem) max(1rem, calc((100vw - 1200px) / 2)) clamp(2rem, 4vw, 4rem);
   z-index: -1;
   border: 1px solid #DADCE0;
-  border-radius: 16px;
+  border-radius: 8px;
   background: #ffffff;
   content: "";
+  display: none;
 }
 
 .google-flow-section > .section-inner,
@@ -496,7 +492,7 @@ h2 {
 .bento-card {
   position: relative;
   overflow: hidden;
-  border-radius: 28px;
+  border-radius: 8px;
   background: #ffffff;
   border: 1px solid #DADCE0;
   transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -643,7 +639,7 @@ h2 {
   display: grid;
   min-width: 0;
   border: 1px solid #DADCE0;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #ffffff;
   transition:
     border-color 200ms ease,
@@ -757,12 +753,11 @@ h2 {
   justify-content: space-between;
   gap: 3rem;
   width: min(1120px, calc(100% - 3rem));
-  margin: clamp(4rem, 8vw, 7rem) auto;
-  border: none;
-  border-radius: 24px;
-  padding: clamp(3rem, 6vw, 5rem);
-  background: #ffffff;
-  box-shadow: 0 1px 3px 0 rgba(60,64,67,0.08), 0 4px 8px 3px rgba(60,64,67,0.04);
+  margin: 0 auto;
+  border-top: 1px solid #E8EAED;
+  padding: clamp(4rem, 7vw, 6rem) 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .about-strip p:last-child {
@@ -912,7 +907,7 @@ h2 {
 }
 
 .post-detail-page {
-  width: min(860px, calc(100% - 3rem));
+  width: min(900px, calc(100% - 3rem));
 }
 
 .post-detail-header {
@@ -1033,10 +1028,10 @@ h2 {
 
 .comment-section {
   display: grid;
-  gap: 1rem;
-  margin-top: 3rem;
-  border-top: 1px solid rgba(17, 24, 39, 0.08);
-  padding-top: 2rem;
+  gap: 1.15rem;
+  margin-top: 3.5rem;
+  border-top: 1px solid #DADCE0;
+  padding-top: 2.2rem;
 }
 
 .comment-heading {
@@ -1050,6 +1045,13 @@ h2 {
   font-size: 1.8rem;
 }
 
+.comment-heading p:not(.section-kicker) {
+  max-width: 560px;
+  margin: 0.55rem 0 0;
+  color: #5F6368;
+  line-height: 1.7;
+}
+
 .comment-auth-button {
   min-height: 40px;
   border: 1px solid #DADCE0;
@@ -1057,16 +1059,16 @@ h2 {
   padding: 0 0.9rem;
   background: #ffffff;
   color: #1A73E8;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .comment-composer {
   display: grid;
   gap: 0.75rem;
-  border: 1px solid rgba(17, 24, 39, 0.08);
+  border: 1px solid #E8EAED;
   border-radius: 8px;
-  padding: 1rem;
-  background: #ffffff;
+  padding: 0.85rem;
+  background: #FCFCFD;
 }
 
 .comment-composer textarea {
@@ -1103,10 +1105,9 @@ h2 {
 .comment-item {
   display: grid;
   gap: 0.45rem;
-  border: 1px solid rgba(17, 24, 39, 0.08);
-  border-radius: 8px;
-  padding: 1rem;
-  background: #ffffff;
+  border-top: 1px solid #E8EAED;
+  padding: 0.95rem 0 0;
+  background: transparent;
 }
 
 .comment-item div {
@@ -1276,7 +1277,7 @@ h2 {
 
 .admin-shell {
   min-height: 100vh;
-  background: #F8F9FA; /* Google Cloud / Material base background */
+  background: #F4F6F8;
   color: #202124;
 }
 
@@ -1292,8 +1293,8 @@ h2 {
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  min-height: 72px;
-  padding: 0 1.5rem;
+  min-height: 64px;
+  padding: 0 1.1rem;
   text-decoration: none;
 }
 
@@ -1310,7 +1311,7 @@ h2 {
   color: #202124;
   font-size: 1.1rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .admin-brand-text small {
@@ -1323,7 +1324,7 @@ h2 {
 
 .admin-menu-wrapper {
   flex: 1;
-  padding: 1rem 0.75rem;
+  padding: 0.75rem 0.65rem;
   overflow-y: auto;
 }
 
@@ -1334,9 +1335,9 @@ h2 {
 
 /* Material You style active menu item */
 .admin-menu .el-menu-item {
-  height: 48px;
-  border-radius: 24px;
-  margin-bottom: 0.35rem;
+  height: 40px;
+  border-radius: 8px;
+  margin-bottom: 0.2rem;
   color: #3C4043;
   font-weight: 500;
   transition: all 180ms ease;
@@ -1359,16 +1360,16 @@ h2 {
 }
 
 .admin-sidebar-footer {
-  padding: 1rem;
+  padding: 0.75rem;
   border-top: 1px solid rgba(0,0,0,0.06);
 }
 
 .admin-logout-btn {
   width: 100%;
   justify-content: flex-start;
-  padding-left: 1rem;
+  padding-left: 0.7rem;
   color: #5F6368;
-  border-radius: 24px;
+  border-radius: 8px;
 }
 
 .admin-logout-btn:hover {
@@ -1377,20 +1378,37 @@ h2 {
 }
 
 .admin-content-wrapper {
-  background: #F8F9FA;
+  background: #F4F6F8;
 }
 
 .admin-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
-  background: rgba(248, 249, 250, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid transparent;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #E8EAED;
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+.topbar-context {
+  display: grid;
+  min-width: 9rem;
+  gap: 0.1rem;
+}
+
+.topbar-context span {
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.topbar-context strong {
+  color: #202124;
+  font-size: 1rem;
 }
 
 .topbar-search {
@@ -1402,20 +1420,20 @@ h2 {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  height: 44px;
+  height: 38px;
   padding: 0 1rem;
   background: #ffffff;
-  border: 1px solid transparent;
-  border-radius: 24px;
+  border: 1px solid #E8EAED;
+  border-radius: 8px;
   color: #5F6368;
-  font-size: 0.95rem;
-  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.1), 0 2px 6px 2px rgba(60,64,67,0.05);
+  font-size: 0.9rem;
+  box-shadow: none;
   transition: box-shadow 200ms ease;
   cursor: text;
 }
 
 .mock-search-bar:hover {
-  box-shadow: 0 1px 3px 0 rgba(60,64,67,0.15), 0 4px 8px 3px rgba(60,64,67,0.05);
+  box-shadow: 0 1px 2px rgba(60,64,67,0.12);
 }
 
 .admin-avatar {
@@ -1431,7 +1449,7 @@ h2 {
 }
 
 .admin-main {
-  padding: 2rem;
+  padding: 1.25rem;
 }
 
 .admin-page {
@@ -1444,11 +1462,11 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  min-height: 64px;
+  min-height: 52px;
 }
 
 .admin-page-heading h1 {
-  font-size: 1.8rem;
+  font-size: 1.55rem;
   line-height: 1.2;
 }
 
@@ -1494,10 +1512,75 @@ h2 {
   background: #eff6ff;
 }
 
+.admin-dashboard-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-brief-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #DADCE0;
+  border-radius: 8px;
+  padding: 1rem 1.15rem;
+  background: #ffffff;
+}
+
+.admin-brief-panel span {
+  color: #1A73E8;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.admin-brief-panel h2 {
+  margin-top: 0.2rem;
+  font-size: 1.28rem;
+}
+
+.admin-brief-panel p {
+  max-width: 640px;
+  margin: 0.35rem 0 0;
+  color: #5F6368;
+  line-height: 1.6;
+}
+
+.admin-brief-panel > strong {
+  flex: 0 0 auto;
+  border: 1px solid #DADCE0;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  background: #F8F9FA;
+  color: #3C4043;
+  font-size: 0.85rem;
+}
+
 .admin-dashboard-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-dashboard-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   gap: 1rem;
+}
+
+.admin-metric-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  min-width: 0;
+  border: 1px solid #DADCE0;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #ffffff;
+}
+
+.admin-metric-card:hover {
+  border-color: color-mix(in srgb, var(--metric-color) 45%, #DADCE0);
 }
 
 .admin-metric-bento {
@@ -1523,10 +1606,11 @@ h2 {
   position: relative;
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  margin-bottom: 0;
 }
 
 .metric-icon-bg {
@@ -1551,9 +1635,9 @@ h2 {
 .metric-content strong {
   display: block;
   color: #202124;
-  font-size: 1.85rem;
+  font-size: 1.55rem;
   line-height: 1.1;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
 }
 
 .metric-content p {
@@ -1568,7 +1652,7 @@ h2 {
   display: grid;
   align-content: start;
   gap: 1rem;
-  padding: 1.5rem;
+  padding: 1rem;
 }
 
 .admin-analysis-heading {
@@ -1579,13 +1663,13 @@ h2 {
 
 .admin-analysis-heading .el-icon {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #E8F0FE;
   color: #1A73E8;
-  font-size: 1.25rem;
+  font-size: 1.08rem;
 }
 
 .admin-analysis-heading span {
@@ -1682,15 +1766,15 @@ h2 {
 
 .admin-panel {
   border: 1px solid #DADCE0;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #ffffff;
-  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.1), 0 2px 6px 2px rgba(60,64,67,0.05);
+  box-shadow: none;
   overflow: hidden;
-  transition: box-shadow 300ms ease, transform 300ms ease;
+  transition: border-color 180ms ease;
 }
 
 .admin-table-panel:hover {
-  box-shadow: 0 4px 12px rgba(60,64,67,0.1), 0 1px 2px rgba(60,64,67,0.06);
+  border-color: #BDC1C6;
 }
 
 .admin-table-title {
@@ -1723,12 +1807,12 @@ h2 {
 
 .admin-table-panel .el-table th.el-table__cell {
   font-weight: 600;
-  font-size: 0.85rem;
-  letter-spacing: 0.02em;
+  font-size: 0.82rem;
+  letter-spacing: 0;
 }
 
 .admin-table-panel .el-table td.el-table__cell {
-  padding: 12px 0;
+  padding: 8px 0;
 }
 
 .admin-table-panel .el-tag {
@@ -1751,9 +1835,9 @@ h2 {
 
 .admin-form-section {
   display: grid;
-  gap: 1.5rem;
-  padding: 2rem;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .admin-form-section-heading {
@@ -1768,8 +1852,8 @@ h2 {
   color: #1A73E8;
   font-size: 0.78rem;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: none;
+  letter-spacing: 0;
   margin-bottom: 0.25rem;
   display: block;
 }
@@ -1783,8 +1867,8 @@ h2 {
 .admin-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .admin-field select[multiple] {
@@ -1817,7 +1901,7 @@ h2 {
   color: #5F6368;
   font-size: 0.85rem;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
 }
 
 .admin-field input,
@@ -1858,8 +1942,8 @@ h2 {
 }
 
 .admin-form-section {
-  padding: 2rem;
-  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .admin-form-section-heading {
@@ -1870,8 +1954,8 @@ h2 {
   color: #1A73E8;
   font-size: 0.78rem;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: none;
+  letter-spacing: 0;
   margin-bottom: 0.25rem;
   display: block;
 }
@@ -2097,7 +2181,6 @@ h2 {
 
   .google-flow-section::before {
     inset: 1.25rem 0.75rem;
-    border-radius: 22px;
   }
 
   .section-heading {

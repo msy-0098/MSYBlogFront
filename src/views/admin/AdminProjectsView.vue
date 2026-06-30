@@ -131,7 +131,7 @@ async function removeProject(project: AdminProject) {
   <section class="admin-page">
     <div class="admin-page-heading">
       <div>
-        <p class="section-kicker">Projects</p>
+        <p class="section-kicker">作品</p>
         <h1>项目管理</h1>
       </div>
 
@@ -203,7 +203,7 @@ async function removeProject(project: AdminProject) {
         </el-form-item>
 
         <el-form-item label="技术栈">
-          <el-input v-model="form.techStackText" type="textarea" :rows="2" placeholder="Go, Vue, SQLite" />
+          <el-input v-model="form.techStackText" type="textarea" :rows="2" placeholder="Go、Vue、MySQL" />
         </el-form-item>
 
         <div class="admin-form-grid">
