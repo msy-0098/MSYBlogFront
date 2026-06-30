@@ -54,6 +54,45 @@ export interface Project {
   visible: boolean
 }
 
+export interface VisitorUser {
+  id: number
+  email: string
+  nickname: string
+  role: 'visitor'
+}
+
+export interface VisitorAuthResult {
+  token: string
+  user: VisitorUser
+}
+
+export interface VisitorRegisterPayload {
+  email: string
+  nickname: string
+  password: string
+  code: string
+}
+
+export interface VisitorLoginPayload {
+  email: string
+  password: string
+}
+
+export interface CommentAuthor {
+  email: string
+  nickname: string
+}
+
+export interface PostComment {
+  id: number
+  postId?: number
+  postTitle?: string
+  content: string
+  status: 'approved' | 'hidden'
+  author: CommentAuthor
+  createdAt: string
+}
+
 export interface ArchiveMonth {
   month: number
   posts: PostSummary[]
@@ -143,6 +182,55 @@ export async function getProjects(client: AxiosInstance = apiClient): Promise<Pr
   const result = unwrap((await client.get<ApiEnvelope<ListResult<Project>>>('/projects')).data)
 
   return result.list
+}
+
+export async function sendVisitorEmailCode(
+  email: string,
+  client: AxiosInstance = apiClient
+): Promise<{ sent: boolean }> {
+  return unwrap((await client.post<ApiEnvelope<{ sent: boolean }>>('/auth/email-code', { email })).data)
+}
+
+export async function registerVisitor(
+  payload: VisitorRegisterPayload,
+  client: AxiosInstance = apiClient
+): Promise<VisitorAuthResult> {
+  return unwrap((await client.post<ApiEnvelope<VisitorAuthResult>>('/auth/register', payload)).data)
+}
+
+export async function loginVisitor(
+  payload: VisitorLoginPayload,
+  client: AxiosInstance = apiClient
+): Promise<VisitorAuthResult> {
+  return unwrap((await client.post<ApiEnvelope<VisitorAuthResult>>('/auth/login', payload)).data)
+}
+
+export async function getPostComments(
+  slug: string,
+  client: AxiosInstance = apiClient
+): Promise<PageResult<PostComment>> {
+  return unwrap((await client.get<ApiEnvelope<PageResult<PostComment>>>(`/posts/${slug}/comments`)).data)
+}
+
+export async function createPostComment(
+  slug: string,
+  content: string,
+  token: string,
+  client: AxiosInstance = apiClient
+): Promise<PostComment> {
+  return unwrap(
+    (
+      await client.post<ApiEnvelope<PostComment>>(
+        `/posts/${slug}/comments`,
+        { content },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+    ).data
+  )
 }
 
 function unwrap<T>(envelope: ApiEnvelope<T>): T {

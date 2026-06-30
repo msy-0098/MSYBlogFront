@@ -20,6 +20,7 @@ describe('admin routes', () => {
         '/admin/categories',
         '/admin/tags',
         '/admin/projects',
+        '/admin/comments',
         '/admin/settings'
       ])
     )
@@ -36,7 +37,7 @@ describe('admin routes', () => {
   it('marks non-login admin routes as requiring auth', () => {
     const flattened = flattenRoutes(routes)
 
-    for (const path of ['/admin', '/admin/posts', '/admin/categories', '/admin/tags', '/admin/projects', '/admin/settings']) {
+    for (const path of ['/admin', '/admin/posts', '/admin/categories', '/admin/tags', '/admin/projects', '/admin/comments', '/admin/settings']) {
       expect(findRoute(flattened, path)?.record.meta?.requiresAuth).toBe(true)
     }
 

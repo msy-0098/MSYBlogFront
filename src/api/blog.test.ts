@@ -2,7 +2,19 @@ import type { AxiosAdapter } from 'axios'
 import { describe, expect, it } from 'vitest'
 
 import { createApiClient } from './site'
-import { getArchive, getCategories, getPostDetail, getPosts, getProjects, searchPosts } from './blog'
+import {
+  createPostComment,
+  getArchive,
+  getCategories,
+  getPostComments,
+  getPostDetail,
+  getPosts,
+  getProjects,
+  loginVisitor,
+  registerVisitor,
+  searchPosts,
+  sendVisitorEmailCode
+} from './blog'
 
 describe('blog api', () => {
   it('reads paginated posts from the unified backend response', async () => {
@@ -70,6 +82,95 @@ describe('blog api', () => {
         visible: true
       }
     ])
+  })
+
+  it('uses visitor auth and comment endpoints', async () => {
+    const requests: Array<{ url?: string; method?: string; data?: unknown; auth?: string }> = []
+    const client = createApiClient({
+      adapter: async (config) => {
+        requests.push({
+          url: config.url,
+          method: config.method,
+          data: config.data ? JSON.parse(String(config.data)) : undefined,
+          auth: readAuthorizationHeader(config.headers)
+        })
+
+        if (config.url === '/auth/email-code') {
+          return okEnvelope({ sent: true }, config)
+        }
+
+        if (config.url === '/auth/register' || config.url === '/auth/login') {
+          return okEnvelope(
+            {
+              token: 'visitor-token',
+              user: {
+                id: 3,
+                email: 'reader@example.com',
+                nickname: '读者',
+                role: 'visitor'
+              }
+            },
+            config
+          )
+        }
+
+        if (config.url === '/posts/go-gin-sqlite-blog/comments' && config.method === 'post') {
+          return okEnvelope({ id: 9, content: '写得很清楚呀' }, config)
+        }
+
+        return okEnvelope({
+          list: [
+            {
+              id: 9,
+              content: '写得很清楚呀',
+              status: 'approved',
+              author: { email: 'reader@example.com', nickname: '读者' },
+              createdAt: '2026-06-30T00:00:00Z'
+            }
+          ],
+          page: 1,
+          pageSize: 1,
+          total: 1
+        }, config)
+      }
+    })
+
+    await expect(sendVisitorEmailCode('reader@example.com', client)).resolves.toEqual({ sent: true })
+    await expect(
+      registerVisitor(
+        {
+          email: 'reader@example.com',
+          nickname: '读者',
+          password: 'reader-password',
+          code: '000000'
+        },
+        client
+      )
+    ).resolves.toMatchObject({ token: 'visitor-token' })
+    await expect(loginVisitor({ email: 'reader@example.com', password: 'reader-password' }, client)).resolves.toMatchObject({
+      user: { role: 'visitor' }
+    })
+    await expect(createPostComment('go-gin-sqlite-blog', '写得很清楚呀', 'visitor-token', client)).resolves.toMatchObject({
+      id: 9
+    })
+    await expect(getPostComments('go-gin-sqlite-blog', client)).resolves.toMatchObject({
+      total: 1,
+      list: [{ author: { nickname: '读者' } }]
+    })
+
+    expect(requests).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ url: '/auth/email-code', method: 'post' }),
+        expect.objectContaining({ url: '/auth/register', method: 'post' }),
+        expect.objectContaining({ url: '/auth/login', method: 'post' }),
+        expect.objectContaining({
+          url: '/posts/go-gin-sqlite-blog/comments',
+          method: 'post',
+          auth: 'Bearer visitor-token'
+        }),
+        expect.objectContaining({ url: '/posts/go-gin-sqlite-blog/comments', method: 'get' })
+      ])
+    )
   })
 })
 
@@ -151,4 +252,19 @@ function okEnvelope(data: unknown, config: Parameters<AxiosAdapter>[0]) {
     headers: {},
     config
   }
+}
+
+function readAuthorizationHeader(headers: unknown): string | undefined {
+  if (!headers) {
+    return undefined
+  }
+
+  if (typeof (headers as { get?: (key: string) => unknown }).get === 'function') {
+    const value = (headers as { get: (key: string) => unknown }).get('Authorization')
+    return typeof value === 'string' ? value : undefined
+  }
+
+  const record = headers as Record<string, unknown>
+  const value = record.Authorization ?? record.authorization
+  return typeof value === 'string' ? value : undefined
 }

@@ -6,6 +6,7 @@ import AdminLayout from '../components/admin/AdminLayout.vue'
 import { useAuthStore } from '../stores/auth'
 import AdminDashboardView from '../views/admin/AdminDashboardView.vue'
 import AdminLoginView from '../views/admin/AdminLoginView.vue'
+import AdminCommentsView from '../views/admin/AdminCommentsView.vue'
 import AdminPostEditView from '../views/admin/AdminPostEditView.vue'
 import AdminPostsView from '../views/admin/AdminPostsView.vue'
 import AdminProjectsView from '../views/admin/AdminProjectsView.vue'
@@ -151,6 +152,14 @@ export const routes: RouteRecordRaw[] = [
         path: 'projects',
         name: 'admin-projects',
         component: AdminProjectsView,
+        meta: {
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'comments',
+        name: 'admin-comments',
+        component: AdminCommentsView,
         meta: {
           requiresAuth: true
         }

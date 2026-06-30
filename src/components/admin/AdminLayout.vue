@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   Collection,
+  ChatDotRound,
   Files,
   FolderOpened,
   House,
@@ -25,6 +26,7 @@ const navItems = [
   { path: '/admin/categories', label: '分类', icon: Collection },
   { path: '/admin/tags', label: '标签', icon: PriceTag },
   { path: '/admin/projects', label: '项目', icon: FolderOpened },
+  { path: '/admin/comments', label: '评论', icon: ChatDotRound },
   { path: '/admin/settings', label: '设置', icon: Setting }
 ]
 

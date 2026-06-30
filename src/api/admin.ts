@@ -107,6 +107,42 @@ export interface AdminUploadResult {
   size: number
 }
 
+export interface AdminComment {
+  id: number
+  postId: number
+  postTitle: string
+  content: string
+  status: 'approved' | 'hidden'
+  author: {
+    email: string
+    nickname: string
+  }
+  createdAt: string
+}
+
+export interface AdminDashboardStats {
+  postCount: number
+  publishedPostCount: number
+  draftPostCount?: number
+  totalViews: number
+  commentCount: number
+  approvedCommentCount?: number
+  hiddenCommentCount?: number
+  visitorCount: number
+}
+
+export interface AdminAIAnalysis {
+  mode: string
+  summary: string
+  signals: string[]
+}
+
+export interface AdminDashboard {
+  stats: AdminDashboardStats
+  aiAnalysis: AdminAIAnalysis
+  recentComments: AdminComment[]
+}
+
 export interface CreateAdminApiClientOptions extends CreateAxiosDefaults {
   getToken?: () => string | null | undefined
   onUnauthorized?: () => void
@@ -294,6 +330,32 @@ export async function uploadAdminImage(file: File, client: AxiosInstance = admin
   formData.append('file', file)
 
   return unwrap((await client.post<ApiEnvelope<AdminUploadResult>>('/admin/upload', formData)).data)
+}
+
+export async function getAdminDashboard(client: AxiosInstance = adminApiClient): Promise<AdminDashboard> {
+  return unwrap((await client.get<ApiEnvelope<AdminDashboard>>('/admin/dashboard')).data)
+}
+
+export async function getAdminComments(
+  params: { page?: number; pageSize?: number } = {},
+  client: AxiosInstance = adminApiClient
+): Promise<AdminPageResult<AdminComment>> {
+  return unwrap((await client.get<ApiEnvelope<AdminPageResult<AdminComment>>>('/admin/comments', { params })).data)
+}
+
+export async function updateAdminComment(
+  id: number,
+  status: AdminComment['status'],
+  client: AxiosInstance = adminApiClient
+): Promise<AdminComment> {
+  return unwrap((await client.put<ApiEnvelope<AdminComment>>(`/admin/comments/${id}`, { status })).data)
+}
+
+export async function deleteAdminComment(
+  id: number,
+  client: AxiosInstance = adminApiClient
+): Promise<{ deleted: boolean }> {
+  return unwrap((await client.delete<ApiEnvelope<{ deleted: boolean }>>(`/admin/comments/${id}`)).data)
 }
 
 export function unwrap<T>(envelope: ApiEnvelope<T>): T {

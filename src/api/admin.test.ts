@@ -4,8 +4,11 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   ADMIN_UNAUTHORIZED_EVENT,
   createAdminApiClient,
+  getAdminComments,
+  getAdminDashboard,
   getAdminProfile,
   loginAdmin,
+  updateAdminComment,
   updateAdminSettings
 } from './admin'
 
@@ -165,6 +168,52 @@ describe('admin api', () => {
     expect(sentPayload).toMatchObject({
       navItems: 'Home,Posts,Projects'
     })
+  })
+
+  it('reads dashboard metrics and updates comments', async () => {
+    const requests: string[] = []
+    const client = createAdminApiClient({
+      getToken: () => 'admin-token',
+      adapter: async (config) => {
+        requests.push(`${config.method?.toUpperCase()} ${config.url}`)
+
+        if (config.url === '/admin/dashboard') {
+          return okEnvelope(
+            {
+              stats: {
+                postCount: 3,
+                publishedPostCount: 2,
+                totalViews: 128,
+                commentCount: 4,
+                visitorCount: 2
+              },
+              aiAnalysis: {
+                mode: 'local',
+                summary: '评论互动正在增长',
+                signals: ['累计阅读 128 次']
+              },
+              recentComments: []
+            },
+            config
+          )
+        }
+
+        if (config.url === '/admin/comments' && config.method === 'get') {
+          return okEnvelope({ list: [], page: 1, pageSize: 10, total: 0 }, config)
+        }
+
+        return okEnvelope({ id: 9, status: 'hidden' }, config)
+      }
+    })
+
+    await expect(getAdminDashboard(client)).resolves.toMatchObject({
+      stats: { totalViews: 128, commentCount: 4 },
+      aiAnalysis: { mode: 'local' }
+    })
+    await expect(getAdminComments({}, client)).resolves.toMatchObject({ total: 0 })
+    await expect(updateAdminComment(9, 'hidden', client)).resolves.toMatchObject({ status: 'hidden' })
+
+    expect(requests).toEqual(['GET /admin/dashboard', 'GET /admin/comments', 'PUT /admin/comments/9'])
   })
 })
 

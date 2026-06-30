@@ -1,10 +1,57 @@
 <script setup lang="ts">
-const metrics = [
-  { label: '文章维护', value: 'Posts', detail: '发布、草稿、隐藏状态管理', color: '#4285F4' },
-  { label: '内容归类', value: 'Tags', detail: '分类和标签保持清晰', color: '#34A853' },
-  { label: '项目展示', value: 'Works', detail: '控制项目排序和可见性', color: '#FBBC05' },
-  { label: '站点设置', value: 'Site', detail: '更新标题、简介和外链', color: '#EA4335' }
-]
+import { ChatDotRound, DataAnalysis, Files, TrendCharts, User, View } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { computed, onMounted, ref } from 'vue'
+
+import { getAdminDashboard, type AdminDashboard } from '../../api/admin'
+
+const loading = ref(false)
+const dashboard = ref<AdminDashboard | null>(null)
+
+const metrics = computed(() => [
+  {
+    label: '文章总数',
+    value: String(dashboard.value?.stats.postCount ?? 0),
+    detail: `已发布 ${dashboard.value?.stats.publishedPostCount ?? 0} 篇`,
+    color: '#4285F4',
+    icon: Files
+  },
+  {
+    label: '访问统计',
+    value: String(dashboard.value?.stats.totalViews ?? 0),
+    detail: '基于文章阅读量汇总',
+    color: '#34A853',
+    icon: TrendCharts
+  },
+  {
+    label: '评论统计',
+    value: String(dashboard.value?.stats.commentCount ?? 0),
+    detail: `隐藏 ${dashboard.value?.stats.hiddenCommentCount ?? 0} 条`,
+    color: '#FBBC05',
+    icon: ChatDotRound
+  },
+  {
+    label: '访客用户',
+    value: String(dashboard.value?.stats.visitorCount ?? 0),
+    detail: '邮箱注册用户',
+    color: '#EA4335',
+    icon: User
+  }
+])
+
+onMounted(loadDashboard)
+
+async function loadDashboard() {
+  loading.value = true
+
+  try {
+    dashboard.value = await getAdminDashboard()
+  } catch {
+    ElMessage.error('工作台数据加载失败')
+  } finally {
+    loading.value = false
+  }
+}
 
 // 鼠标光效计算
 const handleMouseMove = (e: MouseEvent, target: HTMLElement) => {
@@ -29,23 +76,20 @@ const handleMouseMove = (e: MouseEvent, target: HTMLElement) => {
       </RouterLink>
     </div>
 
-    <!-- 借用首页的 Bento 网格系统 -->
-    <div class="bento-grid" style="margin-top: 2rem;">
-      <!-- Welcome 大卡片 -->
+    <div v-loading="loading" class="bento-grid" style="margin-top: 2rem;">
       <article
         class="bento-card bento-wide"
         style="padding: 2.5rem; background: linear-gradient(135deg, #4285F4, #1A73E8); color: white;"
         @mousemove="handleMouseMove($event, $event.currentTarget as HTMLElement)"
       >
         <div style="position: relative; z-index: 1;">
-          <h2 style="color: white; font-size: 2.2rem; margin-bottom: 0.5rem;">Welcome back!</h2>
+          <h2 style="color: white; font-size: 2.2rem; margin-bottom: 0.5rem;">管理端总览</h2>
           <p style="color: rgba(255,255,255,0.85); font-size: 1.1rem; max-width: 400px;">
-            Here's what's happening with your blog today. Check your metrics and manage your latest content.
+            访问统计、评论统计和 AI 分析都在这里汇总啦。
           </p>
         </div>
       </article>
 
-      <!-- Metrics 小卡片 -->
       <article
         v-for="(metric, index) in metrics"
         :key="metric.label"
@@ -55,13 +99,50 @@ const handleMouseMove = (e: MouseEvent, target: HTMLElement) => {
       >
         <div class="metric-icon-wrap" :style="{ color: metric.color }">
           <div class="metric-icon-bg" :style="{ backgroundColor: metric.color + '20' }"></div>
-          <!-- 可以根据 index 放入不同图标，这里先用圆点占位 -->
-          <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle></svg>
+          <el-icon><component :is="metric.icon" /></el-icon>
         </div>
         <div class="metric-content">
           <span>{{ metric.label }}</span>
           <strong>{{ metric.value }}</strong>
           <p>{{ metric.detail }}</p>
+        </div>
+      </article>
+
+      <article
+        class="bento-card bento-wide admin-analysis-card"
+        @mousemove="handleMouseMove($event, $event.currentTarget as HTMLElement)"
+      >
+        <div class="admin-analysis-heading">
+          <el-icon><DataAnalysis /></el-icon>
+          <div>
+            <span>AI 分析</span>
+            <strong>{{ dashboard?.aiAnalysis.mode === 'configured' ? '模型分析' : '本地分析' }}</strong>
+          </div>
+        </div>
+        <p>{{ dashboard?.aiAnalysis.summary || '正在等待数据呀...' }}</p>
+        <ul>
+          <li v-for="signal in dashboard?.aiAnalysis.signals || []" :key="signal">{{ signal }}</li>
+        </ul>
+      </article>
+
+      <article
+        class="bento-card bento-wide admin-recent-comments"
+        @mousemove="handleMouseMove($event, $event.currentTarget as HTMLElement)"
+      >
+        <div class="admin-analysis-heading">
+          <el-icon><ChatDotRound /></el-icon>
+          <div>
+            <span>评论动态</span>
+            <strong>近期评论</strong>
+          </div>
+        </div>
+        <div class="admin-comment-feed">
+          <p v-if="!dashboard?.recentComments.length">暂时还没有评论哦。</p>
+          <article v-for="comment in dashboard?.recentComments || []" :key="comment.id">
+            <strong>{{ comment.author.nickname || comment.author.email }}</strong>
+            <span>{{ comment.postTitle || '文章' }}</span>
+            <p>{{ comment.content }}</p>
+          </article>
         </div>
       </article>
     </div>
