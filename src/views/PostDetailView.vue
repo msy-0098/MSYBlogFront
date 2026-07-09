@@ -55,7 +55,7 @@ watch(slug, loadPost)
         <div class="post-reading-main">
           <MarkdownRenderer :content="post.content" />
         </div>
-        <aside class="post-reading-sidebar">
+        <aside v-if="headings.length" class="post-reading-sidebar">
           <PostTableOfContents :headings="headings" />
         </aside>
       </div>
