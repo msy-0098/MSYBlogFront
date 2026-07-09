@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { mount } from '@vue/test-utils'
 import { nextTick, reactive } from 'vue'
 import { useRoute } from 'vue-router'
@@ -51,6 +54,9 @@ describe('App scroll motion', () => {
     let wrapper = mountApp()
 
     expect(wrapper.get('main').classes()).toContain('public-root-main')
+    expect(wrapper.get('main').classes()).not.toContain('admin-root-main')
+    expect(wrapper.find('app-header-stub').exists()).toBe(true)
+    expect(wrapper.find('app-footer-stub').exists()).toBe(true)
 
     wrapper.unmount()
 
@@ -58,6 +64,29 @@ describe('App scroll motion', () => {
     wrapper = mountApp()
 
     expect(wrapper.get('main').classes()).toContain('admin-root-main')
+    expect(wrapper.get('main').classes()).not.toContain('public-root-main')
+    expect(wrapper.find('app-header-stub').exists()).toBe(false)
+    expect(wrapper.find('app-footer-stub').exists()).toBe(false)
+  })
+
+  it('keeps editorial shell selectors out of legacy global css and scopes public content rules', () => {
+    const globalCss = readFileSync(resolve(process.cwd(), 'src/styles/global.css'), 'utf8')
+    const publicContentCss = readFileSync(resolve(process.cwd(), 'src/styles/public-content.css'), 'utf8')
+
+    expect(globalCss).not.toMatch(/^\s*\.app-header\s*\{/m)
+    expect(globalCss).not.toMatch(/^\s*\.brand\s*\{/m)
+    expect(globalCss).not.toMatch(/^\s*\.brand-mark\s*\{/m)
+    expect(globalCss).not.toMatch(/^\s*\.nav-links\s*\{/m)
+    expect(globalCss).not.toMatch(/^\s*\.mobile-nav-toggle\s*\{/m)
+    expect(globalCss).not.toMatch(/^\s*\.app-footer\s*\{/m)
+    expect(globalCss).not.toMatch(/^\s*\.footer-inner\s*\{/m)
+    expect(globalCss).not.toMatch(/^\s*\.reading-page\s*,/m)
+    expect(globalCss).not.toMatch(/^\s*\.reading-heading\s*\{/m)
+
+    expect(publicContentCss).not.toMatch(/^\s*body\s*\{/m)
+    expect(publicContentCss).not.toMatch(/^\s*#app\s*\{/m)
+    expect(publicContentCss).not.toMatch(/^\s*main\s*\{/m)
+    expect(publicContentCss).not.toMatch(/^\s*img\s*\{/m)
   })
 
   it('does not apply page transition blur to ordinary non-home scrolling', async () => {
