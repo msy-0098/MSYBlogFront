@@ -79,6 +79,9 @@ describe('HomeView', () => {
     expect(wrapper.find('[data-test="latest-post-rail"]').exists()).toBe(true)
     expect(wrapper.find('[data-test="particle-dome"]').exists()).toBe(false)
     expect(wrapper.findAll('[data-test="post-card"]').length).toBeGreaterThan(0)
+    expect(getPosts).toHaveBeenCalledTimes(1)
+    expect(getPosts).toHaveBeenCalledWith({ page: 1, pageSize: 6 })
+    expect(getPostDetail).not.toHaveBeenCalled()
   })
 
   it('loads the curated featured article even when it is not in the latest homepage rail', async () => {
