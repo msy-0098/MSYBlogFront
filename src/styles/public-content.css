@@ -17,6 +17,10 @@
   text-transform: uppercase;
 }
 
+.public-root-main .section-heading .section-kicker {
+  margin-bottom: 0.55rem;
+}
+
 .public-root-main .primary-button,
 .public-root-main .secondary-button,
 .public-root-main .section-link {
@@ -193,5 +197,13 @@
   .public-root-main .reading-grid,
   .public-root-main .taxonomy-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .public-root-main .primary-button,
+  .public-root-main .secondary-button {
+    width: min(100%, 18rem);
+    min-height: 44px;
   }
 }
