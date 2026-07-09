@@ -109,6 +109,7 @@ export interface PostQuery {
   category?: string
   tag?: string
   q?: string
+  slug?: string
 }
 
 export async function getPosts(

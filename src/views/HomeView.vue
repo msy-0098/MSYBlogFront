@@ -3,7 +3,6 @@ import { computed, onMounted, ref } from 'vue'
 
 import {
   getCategories,
-  getPostDetail,
   getPosts,
   getProjects,
   type PostSummary,
@@ -72,7 +71,8 @@ async function loadHomeContent() {
 
     if (featuredSlug && !featuredInLatest) {
       try {
-        featuredPostOverride.value = await getPostDetail(featuredSlug)
+        const featuredFallbackPage = await getPosts({ slug: featuredSlug, page: 1, pageSize: 1 })
+        featuredPostOverride.value = featuredFallbackPage.list[0] ?? null
       } catch {
         featuredPostOverride.value = null
       }

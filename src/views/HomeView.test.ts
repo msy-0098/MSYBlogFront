@@ -6,7 +6,6 @@ import {
   getPostDetail,
   getPosts,
   getProjects,
-  type PostDetail,
   type PostSummary
 } from '../api/blog'
 import { getSiteProfile } from '../api/site'
@@ -25,6 +24,7 @@ vi.mock('../api/site', () => ({
 
 describe('HomeView', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     vi.mocked(getCategories).mockResolvedValue([
       {
         id: 1,
@@ -61,7 +61,7 @@ describe('HomeView', () => {
       pageSize: 6,
       total: 2
     })
-    vi.mocked(getPostDetail).mockResolvedValue(makePostDetail('real-api-post', 'Real API Post'))
+    vi.mocked(getPostDetail).mockRejectedValue(new Error('featured fallback should not use detail endpoint'))
   })
 
   it('renders a featured essay first, then the latest post rail, and removes the particle hero', async () => {
@@ -92,13 +92,19 @@ describe('HomeView', () => {
       featuredPostSlug: 'curated-deep-dive',
       navItems: ['Home', 'Posts', 'Categories', 'Projects', 'About']
     })
-    vi.mocked(getPosts).mockResolvedValue({
-      list: [makePost('latest-one', 'Latest One'), makePost('latest-two', 'Latest Two')],
-      page: 1,
-      pageSize: 6,
-      total: 2
-    })
-    vi.mocked(getPostDetail).mockResolvedValue(makePostDetail('curated-deep-dive', 'Curated Deep Dive'))
+    vi.mocked(getPosts)
+      .mockResolvedValueOnce({
+        list: [makePost('latest-one', 'Latest One'), makePost('latest-two', 'Latest Two')],
+        page: 1,
+        pageSize: 6,
+        total: 2
+      })
+      .mockResolvedValueOnce({
+        list: [makePost('curated-deep-dive', 'Curated Deep Dive')],
+        page: 1,
+        pageSize: 1,
+        total: 1
+      })
 
     const wrapper = mount(HomeView, {
       global: {
@@ -110,7 +116,9 @@ describe('HomeView', () => {
 
     await flushPromises()
 
-    expect(getPostDetail).toHaveBeenCalledWith('curated-deep-dive')
+    expect(getPosts).toHaveBeenNthCalledWith(1, { page: 1, pageSize: 6 })
+    expect(getPosts).toHaveBeenNthCalledWith(2, { slug: 'curated-deep-dive', page: 1, pageSize: 1 })
+    expect(getPostDetail).not.toHaveBeenCalled()
     expect(wrapper.get('[data-test="featured-essay"]').text()).toContain('Curated Deep Dive')
     expect(wrapper.get('[data-test="latest-post-rail"]').text()).toContain('Latest One')
     expect(wrapper.get('[data-test="latest-post-rail"]').text()).toContain('Latest Two')
@@ -128,14 +136,5 @@ function makePost(slug: string, title: string): PostSummary {
     category: { id: 1, name: 'Real Category', slug: 'real-category' },
     tags: [{ id: 1, name: 'API', slug: 'api' }],
     publishedAt: '2026-06-30'
-  }
-}
-
-function makePostDetail(slug: string, title: string): PostDetail {
-  return {
-    ...makePost(slug, title),
-    content: `# ${title}`,
-    prev: null,
-    next: null
   }
 }

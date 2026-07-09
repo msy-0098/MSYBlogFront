@@ -60,10 +60,10 @@ describe('blog api', () => {
 
     const client = createApiClient({ adapter })
 
-    await getPosts({ category: 'go', tag: 'backend', q: 'SQLite' }, client)
+    await getPosts({ category: 'go', tag: 'backend', q: 'SQLite', slug: 'go-gin-sqlite-blog' }, client)
     await searchPosts({ q: 'Vue', page: 2, pageSize: 6 }, client)
 
-    expect(requests).toContain('/posts?category=go&tag=backend&q=SQLite')
+    expect(requests).toContain('/posts?category=go&tag=backend&q=SQLite&slug=go-gin-sqlite-blog')
     expect(requests).toContain('/search?q=Vue&page=2&pageSize=6')
   })
 
