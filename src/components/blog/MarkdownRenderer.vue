@@ -3,9 +3,16 @@ import hljs from 'highlight.js/lib/common'
 import MarkdownIt from 'markdown-it'
 import { computed } from 'vue'
 
+import { extractMarkdownHeadings } from '../../utils/markdownHeadings'
+
 const props = defineProps<{
   content: string
 }>()
+
+interface HeadingRenderEnv {
+  headingIds: string[]
+  headingIndex: number
+}
 
 const markdown: MarkdownIt = new MarkdownIt({
   html: false,
@@ -29,6 +36,9 @@ const fallbackRender: RenderRule = (tokens, index, options, _env, self) =>
 const defaultRender: RenderRule =
   markdown.renderer.rules.link_open ??
   fallbackRender
+const defaultHeadingRender: RenderRule =
+  markdown.renderer.rules.heading_open ??
+  fallbackRender
 const defaultImageRender: RenderRule =
   markdown.renderer.rules.image ??
   fallbackRender
@@ -45,6 +55,18 @@ markdown.renderer.rules.link_open = (tokens, index, options, env, self) => {
   return defaultRender(tokens, index, options, env, self)
 }
 
+markdown.renderer.rules.heading_open = (tokens, index, options, env, self) => {
+  const token = tokens[index]
+  const headingEnv = env as HeadingRenderEnv
+
+  if ((token.tag === 'h2' || token.tag === 'h3') && headingEnv.headingIds.length > headingEnv.headingIndex) {
+    token.attrSet('id', headingEnv.headingIds[headingEnv.headingIndex])
+    headingEnv.headingIndex += 1
+  }
+
+  return defaultHeadingRender(tokens, index, options, env, self)
+}
+
 markdown.renderer.rules.image = (tokens, index, options, env, self) => {
   const token = tokens[index]
   token.attrSet('loading', 'lazy')
@@ -53,7 +75,15 @@ markdown.renderer.rules.image = (tokens, index, options, env, self) => {
   return defaultImageRender(tokens, index, options, env, self)
 }
 
-const rendered = computed(() => markdown.render(props.content || ''))
+const headingIds = computed(() => extractMarkdownHeadings(props.content || '').map((heading) => heading.id))
+const rendered = computed(() => {
+  const env: HeadingRenderEnv = {
+    headingIds: headingIds.value,
+    headingIndex: 0
+  }
+
+  return markdown.render(props.content || '', env)
+})
 
 function escapeHtml(value: string): string {
   return value

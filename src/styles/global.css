@@ -685,6 +685,11 @@ h2 {
   line-height: 1.25;
 }
 
+.markdown-body h2[id],
+.markdown-body h3[id] {
+  scroll-margin-top: calc(var(--header-height) + 1.5rem);
+}
+
 .markdown-body h1 {
   font-size: 2.2rem;
 }

@@ -82,7 +82,7 @@
 }
 
 .public-root-main .post-detail-page {
-  width: min(900px, calc(100% - 3rem));
+  width: min(var(--page-max-width), calc(100% - 3rem));
 }
 
 .public-root-main .reading-heading {
@@ -158,11 +158,60 @@
 .public-root-main .post-detail-header {
   display: grid;
   gap: 1rem;
+  max-width: var(--reading-width);
   margin-bottom: 2rem;
 }
 
 .public-root-main .post-detail-header .section-link {
   justify-self: start;
+}
+
+.public-root-main .post-reading-layout {
+  display: grid;
+  grid-template-columns: minmax(0, var(--reading-width)) minmax(220px, 1fr);
+  gap: clamp(2rem, 4vw, 3.5rem);
+  align-items: start;
+}
+
+.public-root-main .post-reading-main {
+  min-width: 0;
+}
+
+.public-root-main .post-reading-sidebar {
+  position: sticky;
+  top: calc(var(--header-height) + 1.5rem);
+}
+
+.public-root-main .post-toc {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 1rem 1.1rem;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--shadow-soft);
+}
+
+.public-root-main .post-toc-list {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.public-root-main .post-toc-item a {
+  color: var(--text-body);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.public-root-main .post-toc-item a:hover {
+  color: var(--accent);
+}
+
+.public-root-main .post-toc-item.is-level-3 {
+  padding-left: 0.85rem;
 }
 
 .public-root-main .post-detail-header .tag-row a {
@@ -175,9 +224,19 @@
 }
 
 @media (max-width: 980px) {
+  .public-root-main .post-reading-layout,
   .public-root-main .reading-grid,
   .public-root-main .taxonomy-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .public-root-main .post-reading-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .public-root-main .post-reading-sidebar {
+    position: static;
+    max-width: var(--reading-width);
   }
 }
 
@@ -197,6 +256,11 @@
   .public-root-main .reading-grid,
   .public-root-main .taxonomy-grid {
     grid-template-columns: 1fr;
+  }
+
+  .public-root-main .post-detail-header,
+  .public-root-main .post-reading-sidebar {
+    max-width: none;
   }
 }
 

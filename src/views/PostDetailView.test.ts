@@ -23,7 +23,7 @@ vi.mock('../api/blog', () => ({
     title: '用 Go 和 SQLite 搭建轻量博客',
     slug: 'go-gin-sqlite-blog',
     summary: '后端闭环',
-    content: '## 正文',
+    content: ['## 第一节', '', '内容', '', '### 子节', '', '更多内容'].join('\n'),
     cover: '',
     viewCount: 8,
     category: { name: 'Go', slug: 'go' },
@@ -57,7 +57,7 @@ describe('PostDetailView', () => {
     localStorage.clear()
   })
 
-  it('renders comments and prompts visitors to login before commenting', async () => {
+  it('renders a table of contents and mounts the extracted comment section', async () => {
     const wrapper = mount(PostDetailView, {
       global: {
         stubs: {
@@ -72,6 +72,9 @@ describe('PostDetailView', () => {
 
     await flushPromises()
 
+    expect(wrapper.find('[data-test="post-toc"]').exists()).toBe(true)
+    expect(wrapper.findAll('[data-test="post-toc-link"]')).toHaveLength(2)
+    expect(wrapper.find('[data-test="comment-section"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('评论')
     expect(wrapper.text()).toContain('文章写得很清楚呀')
     expect(wrapper.text()).toContain('登录/注册后评论')
