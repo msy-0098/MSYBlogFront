@@ -46,6 +46,20 @@ describe('App scroll motion', () => {
     })
   })
 
+  it('wraps public routes in the editorial shell but keeps admin routes isolated', () => {
+    route.path = '/posts'
+    let wrapper = mountApp()
+
+    expect(wrapper.get('main').classes()).toContain('public-root-main')
+
+    wrapper.unmount()
+
+    route.path = '/admin'
+    wrapper = mountApp()
+
+    expect(wrapper.get('main').classes()).toContain('admin-root-main')
+  })
+
   it('does not apply page transition blur to ordinary non-home scrolling', async () => {
     route.path = '/posts'
     const wrapper = mountApp()

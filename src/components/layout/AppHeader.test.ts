@@ -7,6 +7,31 @@ import { routes } from '../../router'
 import AppHeader from './AppHeader.vue'
 
 describe('AppHeader', () => {
+  it('renders the editorial primary navigation and closes the mobile menu after route changes', async () => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes
+    })
+    router.push('/posts')
+    await router.isReady()
+
+    const wrapper = mount(AppHeader, {
+      global: {
+        plugins: [router]
+      }
+    })
+
+    const labels = wrapper.findAll('[data-test="primary-nav"] a').map((link) => link.text())
+    expect(labels).toEqual(['文章', '分类', '项目', '关于', '搜索'])
+
+    const toggle = wrapper.get('[data-test="mobile-nav-toggle"]')
+    await toggle.trigger('click')
+    await router.push('/about')
+    await nextTick()
+
+    expect(wrapper.get('[data-test="primary-nav"]').classes()).not.toContain('is-open')
+  })
+
   it('highlights the active route and toggles the mobile menu', async () => {
     const router = createRouter({
       history: createMemoryHistory(),

@@ -7,6 +7,7 @@ import AppHeader from './components/layout/AppHeader.vue'
 
 const route = useRoute()
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))
+const mainClass = computed(() => (isAdminRoute.value ? 'admin-root-main' : 'public-root-main'))
 </script>
 
 <template>
@@ -14,7 +15,7 @@ const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 
   <main
     class="app-motion-shell"
-    :class="{ 'admin-root-main': isAdminRoute }"
+    :class="mainClass"
     :style="{
       '--scroll-blur': '0px',
       '--scroll-shift': '0px'

@@ -1,3 +1,7 @@
+@import './tokens.css';
+@import './public-shell.css';
+@import './public-content.css';
+
 :root {
   color: #202124;
   background: #F8F9FA;
@@ -1274,6 +1278,8 @@ h2 {
   border-color: rgba(239, 68, 68, 0.24);
   color: #b91c1c;
 }
+
+/* existing admin styles continue below this line */
 
 .admin-shell {
   min-height: 100vh;
