@@ -16,15 +16,20 @@ defineProps<{
       <span class="post-meta">{{ post.publishedAt }} · {{ post.category.name }} · {{ post.viewCount }} 次阅读</span>
       <span class="post-title">{{ post.title }}</span>
       <span class="post-summary">{{ post.summary }}</span>
-      <span class="tag-row post-card-shell__tags">
-        <span v-for="tag in post.tags" :key="tag.slug" class="tag-link">{{ tag.name }}</span>
-      </span>
     </RouterLink>
+
+    <span v-if="post.tags.length" class="tag-row post-card-shell__tags">
+      <RouterLink v-for="tag in post.tags" :key="tag.slug" class="tag-link" :to="`/tags/${tag.slug}`">
+        {{ tag.name }}
+      </RouterLink>
+    </span>
   </article>
 </template>
 
 <style scoped>
 .post-card-shell {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   overflow: hidden;
   transition:
     transform 220ms ease,
@@ -39,7 +44,7 @@ defineProps<{
 .post-card-shell__link {
   display: grid;
   gap: 0.55rem;
-  height: 100%;
+  min-height: 100%;
   color: inherit;
 }
 
@@ -71,10 +76,7 @@ defineProps<{
 }
 
 .post-card-shell__tags {
-  margin-top: auto;
-}
-
-.tag-link {
-  pointer-events: none;
+  margin-top: 0;
+  padding-bottom: 0.15rem;
 }
 </style>

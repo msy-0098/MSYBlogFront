@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 
-import { getCategories, getPosts, getProjects, type PostSummary, type Project, type Taxonomy } from '../api/blog'
+import {
+  getCategories,
+  getPostDetail,
+  getPosts,
+  getProjects,
+  type PostSummary,
+  type Project,
+  type Taxonomy
+} from '../api/blog'
 import { getSiteProfile, type SiteProfile } from '../api/site'
 import CategoryCloud from '../components/home/CategoryCloud.vue'
 import FeaturedEssay from '../components/home/FeaturedEssay.vue'
@@ -23,10 +31,15 @@ const apiStatus = ref('Connecting /api/site')
 const posts = ref<PostSummary[]>([])
 const categories = ref<Taxonomy[]>([])
 const projects = ref<Project[]>([])
+const featuredPostOverride = ref<PostSummary | null>(null)
 const contentLoading = ref(true)
 const contentError = ref('')
 
 const featuredPost = computed(() => {
+  if (featuredPostOverride.value) {
+    return featuredPostOverride.value
+  }
+
   if (!posts.value.length) {
     return null
   }
@@ -45,6 +58,7 @@ const latestPosts = computed(() =>
 async function loadHomeContent() {
   contentLoading.value = true
   contentError.value = ''
+  featuredPostOverride.value = null
 
   try {
     const [postPage, categoryList, projectList] = await Promise.all([
@@ -52,6 +66,18 @@ async function loadHomeContent() {
       getCategories(),
       getProjects()
     ])
+
+    const featuredSlug = profile.value.featuredPostSlug
+    const featuredInLatest = featuredSlug ? postPage.list.find((post) => post.slug === featuredSlug) : null
+
+    if (featuredSlug && !featuredInLatest) {
+      try {
+        featuredPostOverride.value = await getPostDetail(featuredSlug)
+      } catch {
+        featuredPostOverride.value = null
+      }
+    }
+
     posts.value = postPage.list
     categories.value = categoryList
     projects.value = projectList.slice(0, 3)
