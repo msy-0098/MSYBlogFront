@@ -12,6 +12,8 @@ export interface SiteProfile {
   owner: string
   domain: string
   description: string
+  featuredPostSlug?: string
+  aboutIntro?: string
   navItems: string[]
 }
 
@@ -34,4 +36,3 @@ export async function getSiteProfile(client: AxiosInstance = apiClient): Promise
 
   return response.data.data
 }
-

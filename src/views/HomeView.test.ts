@@ -23,11 +23,21 @@ vi.mock('../api/blog', () => ({
         category: { id: 1, name: 'Real Category', slug: 'real-category' },
         tags: [{ id: 1, name: 'API', slug: 'api' }],
         publishedAt: '2026-06-30'
+      },
+      {
+        title: 'Second API Post',
+        slug: 'second-api-post',
+        summary: 'Another backend article',
+        cover: '',
+        viewCount: 4,
+        category: { id: 1, name: 'Real Category', slug: 'real-category' },
+        tags: [{ id: 2, name: 'Vue', slug: 'vue' }],
+        publishedAt: '2026-06-29'
       }
     ],
     page: 1,
     pageSize: 6,
-    total: 1
+    total: 2
   }),
   getProjects: vi.fn().mockResolvedValue([
     {
@@ -50,33 +60,27 @@ vi.mock('../api/site', () => ({
     owner: 'MSY',
     domain: 'masenyu.top',
     description: 'Real site profile',
+    aboutIntro: 'A calm place for essays and builds.',
+    featuredPostSlug: 'real-api-post',
     navItems: ['Home', 'Posts', 'Categories', 'Projects', 'About']
   })
 }))
 
 describe('HomeView', () => {
-  it('renders visitor homepage sections from backend APIs', async () => {
-    const canvasContextSpy = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
+  it('renders a featured essay first, then the latest post rail, and removes the particle hero', async () => {
     const wrapper = mount(HomeView, {
       global: {
         stubs: {
-          RouterLink: RouterLinkStub,
-          HeroParticleDome: {
-            template: '<div data-test="particle-dome"><canvas /></div>'
-          }
+          RouterLink: RouterLinkStub
         }
       }
     })
 
     await flushPromises()
 
-    expect(wrapper.find('[data-test="particle-dome"]').exists()).toBe(true)
-    expect(wrapper.find('[data-test="particle-dome"] canvas').exists()).toBe(true)
-    expect(wrapper.findAll('.google-flow-section').length).toBeGreaterThanOrEqual(4)
-    expect(wrapper.text()).toContain('Real API Post')
-    expect(wrapper.text()).toContain('Real Category')
-    expect(wrapper.text()).toContain('Real API Project')
-    expect(wrapper.findAll('[data-test="post-card"]')).toHaveLength(1)
-    canvasContextSpy.mockRestore()
+    expect(wrapper.find('[data-test="featured-essay"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="latest-post-rail"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="particle-dome"]').exists()).toBe(false)
+    expect(wrapper.findAll('[data-test="post-card"]').length).toBeGreaterThan(0)
   })
 })

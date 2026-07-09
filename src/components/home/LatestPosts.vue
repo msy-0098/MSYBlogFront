@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PostSummary } from '../../api/blog'
+import PostCard from '../blog/PostCard.vue'
 
 defineProps<{
   posts: PostSummary[]
@@ -19,13 +20,17 @@ const handleMouseMove = (event: MouseEvent, target: HTMLElement) => {
 </script>
 
 <template>
-  <section class="section-band google-flow-section" aria-labelledby="latest-posts-title">
+  <section
+    class="section-band google-flow-section latest-post-rail"
+    aria-labelledby="latest-posts-title"
+    data-test="latest-post-rail"
+  >
     <div class="section-inner">
       <div class="section-heading google-flow-heading">
         <div>
-          <p class="section-kicker">文章</p>
-          <h2 id="latest-posts-title">最新文章</h2>
-          <p class="section-lead">来自后台发布的技术笔记、项目复盘和工程实践记录。</p>
+          <p class="section-kicker">继续阅读</p>
+          <h2 id="latest-posts-title">最新文章轨道</h2>
+          <p class="section-lead">精选文章之后，顺着时间继续浏览最近发布的复盘、笔记与工程记录。</p>
         </div>
         <RouterLink class="section-link" to="/posts">查看全部</RouterLink>
       </div>
@@ -34,37 +39,51 @@ const handleMouseMove = (event: MouseEvent, target: HTMLElement) => {
       <p v-else-if="error" class="state-line error-line">{{ error }}</p>
       <p v-else-if="posts.length === 0" class="state-line">暂时还没有已发布文章。</p>
 
-      <div v-else class="bento-grid google-flow-grid">
-        <RouterLink
+      <div v-else class="latest-post-rail__track">
+        <article
           v-for="(post, index) in posts"
           :key="post.slug"
-          :class="[
-            'bento-card',
-            index === 0 ? 'bento-large bento-text-light' : index === 3 ? 'bento-wide' : 'bento-standard'
-          ]"
-          :to="`/posts/${post.slug}`"
+          class="latest-post-rail__slot"
           :style="{ '--accent': accents[index % accents.length] }"
-          data-test="post-card"
           @mousemove="handleMouseMove($event, $event.currentTarget as HTMLElement)"
         >
-          <template v-if="index === 0">
-            <div
-              class="bento-image-bg"
-              :style="{ background: `linear-gradient(135deg, ${accents[index % accents.length]}40, #111827)` }"
-            />
-            <div class="bento-image-overlay" />
-          </template>
-
-          <div class="bento-card-inner">
-            <span class="post-meta">{{ post.publishedAt }} · {{ post.category.name }}</span>
-            <span class="post-title">{{ post.title }}</span>
-            <span class="post-summary">{{ post.summary }}</span>
-            <div class="tag-row" style="margin-top: auto;">
-              <span v-for="tag in post.tags" :key="tag.slug">{{ tag.name }}</span>
-            </div>
-          </div>
-        </RouterLink>
+          <span class="latest-post-rail__index">0{{ index + 1 }}</span>
+          <PostCard :post="post" />
+        </article>
       </div>
     </div>
   </section>
 </template>
+
+<style scoped>
+.latest-post-rail__track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.latest-post-rail__slot {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.latest-post-rail__index {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 980px) {
+  .latest-post-rail__track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .latest-post-rail__track {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
