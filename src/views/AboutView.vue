@@ -23,7 +23,7 @@ onMounted(async () => {
     <div class="reading-heading">
       <p class="section-kicker">关于</p>
       <h1>{{ profile?.owner || '关于我' }}</h1>
-      <p>{{ profile?.subtitle || '工程笔记与项目实践记录。' }}</p>
+      <p>{{ profile?.subtitle || '记录工程实践、项目复盘和 AI 协作里的长期成长。' }}</p>
     </div>
 
     <p v-if="loading" class="state-line">正在加载个人资料...</p>
@@ -35,7 +35,7 @@ onMounted(async () => {
         <p>{{ profile?.description }}</p>
         <p v-if="profile?.domain">域名：{{ profile.domain }}</p>
       </div>
-      <RouterLink class="secondary-button" to="/posts">阅读文章</RouterLink>
+      <RouterLink class="secondary-button" to="/posts">继续阅读文章</RouterLink>
     </div>
   </section>
 </template>

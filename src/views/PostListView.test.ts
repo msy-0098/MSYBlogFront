@@ -45,6 +45,8 @@ describe('PostListView', () => {
     await flushPromises()
 
     expect(wrapper.get('h1').text()).toContain('Go')
+    expect(wrapper.text()).toContain('继续阅读')
+    expect(wrapper.find('[data-test="post-list-grid"]').exists()).toBe(true)
     expect(getCategoryPosts).toHaveBeenCalledWith('go', { page: 1, pageSize: 9 })
   })
 })

@@ -22,8 +22,8 @@ onMounted(async () => {
   <section class="reading-page">
     <div class="reading-heading">
       <p class="section-kicker">作品</p>
-      <h1>项目作品</h1>
-      <p>项目条目来自后台项目管理，展示真实实践和技术栈。</p>
+      <h1>把想法做成可运行的作品</h1>
+      <p>这里收集公开项目和阶段性实践，保留技术选择、问题拆解与交付痕迹。</p>
     </div>
 
     <p v-if="loading" class="state-line">正在加载项目...</p>

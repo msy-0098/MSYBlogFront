@@ -19,6 +19,9 @@ describe('SearchView', () => {
       global: { stubs: { RouterLink: RouterLinkStub } }
     })
 
+    expect(wrapper.get('h1').text()).toBe('在写作档案里找答案')
+    expect(wrapper.text()).toContain('继续沿着主题向下阅读')
+
     await wrapper.get('input[type="search"]').setValue('mysql')
     await wrapper.get('form').trigger('submit')
     await flushPromises()

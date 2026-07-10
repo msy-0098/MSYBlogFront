@@ -10,7 +10,7 @@ const result = ref<PageResult<PostSummary> | null>(null)
 const currentPage = ref(1)
 const pageSize = 9
 const loading = ref(false)
-const message = ref('输入关键词搜索文章。')
+const message = ref('输入关键词搜索文章，沿着一个问题继续往下读。')
 
 const totalPages = computed(() => Math.max(1, Math.ceil((result.value?.total ?? 0) / pageSize)))
 
@@ -58,8 +58,8 @@ function goToPage(nextPage: number) {
   <section class="reading-page">
     <div class="reading-heading">
       <p class="section-kicker">搜索</p>
-      <h1>站内搜索</h1>
-      <p>检索文章标题、摘要与正文内容。</p>
+      <h1>在写作档案里找答案</h1>
+      <p>检索标题、摘要和正文，继续沿着主题向下阅读。</p>
     </div>
 
     <form class="search-box" @submit.prevent="submitSearch">
@@ -70,7 +70,7 @@ function goToPage(nextPage: number) {
     <p v-if="loading" class="state-line">正在搜索...</p>
     <p v-else-if="message" class="state-line">{{ message }}</p>
 
-    <div v-if="result?.list.length" class="post-grid reading-grid">
+    <div v-if="result?.list.length" class="post-grid reading-grid" data-test="search-result-grid">
       <PostCard v-for="post in result.list" :key="post.slug" :post="post" />
     </div>
 

@@ -21,9 +21,9 @@ onMounted(async () => {
 <template>
   <section class="reading-page">
     <div class="reading-heading">
-      <p class="section-kicker">Archive</p>
-      <h1>归档</h1>
-      <p>按照年份和月份回看写作时间线。</p>
+      <p class="section-kicker">归档</p>
+      <h1>沿着时间线回看</h1>
+      <p>按年份和月份收纳公开笔记，适合从一个阶段继续追踪思考脉络。</p>
     </div>
 
     <p v-if="loading" class="state-line">正在加载归档呀...</p>

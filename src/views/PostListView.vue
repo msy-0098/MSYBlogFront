@@ -44,6 +44,13 @@ const title = computed(() => {
 
   return '全部文章'
 })
+const intro = computed(() => {
+  if (props.mode === 'category' || props.mode === 'tag') {
+    return `继续阅读 ${taxonomyName.value} 相关的公开笔记与项目复盘。`
+  }
+
+  return '继续阅读最近整理的公开笔记与项目复盘。'
+})
 
 async function loadTaxonomyNames() {
   if (props.mode === 'category') {
@@ -99,14 +106,14 @@ watch(
     <div class="reading-heading">
       <p class="section-kicker">文章</p>
       <h1>{{ title }}</h1>
-      <p>按发布时间整理的真实笔记，数据来自 MySQL 持久化存储。</p>
+      <p>{{ intro }}</p>
     </div>
 
     <p v-if="loading" class="state-line">正在加载文章...</p>
     <p v-else-if="error" class="state-line error-line">{{ error }}</p>
 
     <template v-else>
-      <div v-if="page?.list.length" class="post-grid reading-grid">
+      <div v-if="page?.list.length" class="post-grid reading-grid" data-test="post-list-grid">
         <PostCard v-for="post in page.list" :key="post.slug" :post="post" />
       </div>
 
