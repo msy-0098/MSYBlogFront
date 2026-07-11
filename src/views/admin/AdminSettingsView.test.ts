@@ -57,4 +57,36 @@ describe('AdminSettingsView', () => {
       })
     )
   })
+
+  it('shows the actual AI runtime configuration without exposing the API key', async () => {
+    getAdminSettings.mockResolvedValue({
+      siteTitle: 'Blog',
+      subtitle: 'Notes',
+      owner: 'Admin',
+      domain: 'example.com',
+      description: 'Personal site',
+      github: '',
+      gitee: '',
+      email: '',
+      icp: '',
+      navItems: 'Home,Posts',
+      aiProvider: 'deepseek',
+      aiModel: 'deepseek-chat',
+      aiBaseURL: 'https://api.deepseek.com',
+      aiConfigured: 'true'
+    })
+
+    const wrapper = mount(AdminSettingsView, {
+      global: {
+        plugins: [ElementPlus]
+      }
+    })
+    await flushPromises()
+
+    const runtime = wrapper.find('[data-test="admin-runtime-config"]')
+    expect(runtime.text()).toContain('deepseek')
+    expect(runtime.text()).toContain('deepseek-chat')
+    expect(runtime.text()).toContain('https://api.deepseek.com')
+    expect(runtime.text()).toContain('API Key')
+  })
 })

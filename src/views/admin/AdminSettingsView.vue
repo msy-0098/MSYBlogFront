@@ -18,7 +18,11 @@ const form = reactive<AdminSettings>({
   gitee: '',
   email: '',
   icp: '',
-  navItems: ''
+  navItems: '',
+  aiProvider: '',
+  aiModel: '',
+  aiBaseURL: '',
+  aiConfigured: 'false'
 })
 
 onMounted(loadSettings)
@@ -110,6 +114,28 @@ async function saveSettings() {
 
         <div class="admin-editor-actions">
           <el-button type="primary" :loading="saving" data-test="settings-save-button" @click="saveSettings">保存设置</el-button>
+        </div>
+
+        <div class="admin-runtime-config" data-test="admin-runtime-config">
+          <div class="admin-form-section-heading">
+            <div>
+              <span>Runtime</span>
+              <strong>实际运行配置</strong>
+            </div>
+          </div>
+          <div class="admin-runtime-grid">
+            <div><span>AI 提供商</span><strong>{{ form.aiProvider || '未配置' }}</strong></div>
+            <div><span>模型</span><strong>{{ form.aiModel || '未配置' }}</strong></div>
+            <div><span>Base URL</span><strong>{{ form.aiBaseURL || '未配置' }}</strong></div>
+          </div>
+          <el-alert
+            :title="form.aiConfigured === 'true' ? 'DeepSeek 已配置，管理端 AI 可直接调用' : 'DeepSeek 尚未配置 API Key'"
+            :type="form.aiConfigured === 'true' ? 'success' : 'warning'"
+            :closable="false"
+            show-icon
+          >
+            API Key 只在后端环境变量中使用，不会返回浏览器，也不会保存到站点设置表。
+          </el-alert>
         </div>
       </el-form>
     </section>

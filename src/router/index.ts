@@ -11,6 +11,8 @@ import AdminPostEditView from '../views/admin/AdminPostEditView.vue'
 import AdminPostsView from '../views/admin/AdminPostsView.vue'
 import AdminProjectsView from '../views/admin/AdminProjectsView.vue'
 import AdminSettingsView from '../views/admin/AdminSettingsView.vue'
+import AdminUsersView from '../views/admin/AdminUsersView.vue'
+import AdminSecurityView from '../views/admin/AdminSecurityView.vue'
 import AdminTaxonomyView from '../views/admin/AdminTaxonomyView.vue'
 
 export const routes: RouteRecordRaw[] = [
@@ -163,6 +165,18 @@ export const routes: RouteRecordRaw[] = [
         meta: {
           requiresAuth: true
         }
+      },
+      {
+        path: 'users',
+        name: 'admin-users',
+        component: AdminUsersView,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'security',
+        name: 'admin-security',
+        component: AdminSecurityView,
+        meta: { requiresAuth: true }
       },
       {
         path: 'settings',

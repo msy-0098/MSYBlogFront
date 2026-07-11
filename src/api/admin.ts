@@ -13,6 +13,10 @@ export const ADMIN_UNAUTHORIZED_EVENT = 'admin:unauthorized'
 export interface AdminUser {
   id: number
   username: string
+  email?: string
+  nickname?: string
+  role?: string
+  createdAt?: string
 }
 
 export interface AdminLoginPayload {
@@ -97,6 +101,10 @@ export interface AdminSettings {
   email: string
   icp: string
   navItems: string
+  aiProvider?: string
+  aiModel?: string
+  aiBaseURL?: string
+  aiConfigured?: string
 }
 
 export interface AdminUploadResult {
@@ -137,8 +145,50 @@ export interface AdminAIAnalysis {
   signals: string[]
 }
 
+export interface AdminIPBan {
+  id: number
+  ip: string
+  reason: string
+  active: boolean
+  expiresAt?: string | null
+  createdAt: string
+}
+
+export interface AdminTopIP {
+  ip: string
+  requests: number
+  failures: number
+  lastSeen: string
+  banned: boolean
+}
+
+export interface AdminAnalytics {
+  totalRequests: number
+  todayRequests: number
+  uniqueIPs: number
+  failedRequests: number
+  topIPs: AdminTopIP[]
+  topPaths: Array<{ path: string; requests: number }>
+  recentBans: AdminIPBan[]
+}
+
+export interface AdminVisitor {
+  id: number
+  username: string
+  email: string
+  nickname: string
+  role: string
+  createdAt: string
+}
+
+export interface AdminAIMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
 export interface AdminDashboard {
   stats: AdminDashboardStats
+  analytics?: AdminAnalytics
   aiAnalysis: AdminAIAnalysis
   recentComments: AdminComment[]
 }
@@ -323,6 +373,46 @@ export async function updateAdminSettings(
   client: AxiosInstance = adminApiClient
 ): Promise<AdminSettings> {
   return unwrap((await client.put<ApiEnvelope<AdminSettings>>('/admin/settings', payload)).data)
+}
+
+export async function getAdminUsers(
+  params: { page?: number; pageSize?: number } = {},
+  client: AxiosInstance = adminApiClient
+): Promise<AdminPageResult<AdminVisitor>> {
+  return unwrap((await client.get<ApiEnvelope<AdminPageResult<AdminVisitor>>>('/admin/users', { params })).data)
+}
+
+export async function getAdminAnalytics(client: AxiosInstance = adminApiClient): Promise<AdminAnalytics> {
+  return unwrap((await client.get<ApiEnvelope<AdminAnalytics>>('/admin/analytics')).data)
+}
+
+export async function getAdminBans(client: AxiosInstance = adminApiClient): Promise<AdminIPBan[]> {
+  return unwrap((await client.get<ApiEnvelope<AdminListResult<AdminIPBan>>>('/admin/ip-bans')).data).list
+}
+
+export async function createAdminBan(
+  payload: { ip: string; reason?: string; duration?: number },
+  client: AxiosInstance = adminApiClient
+): Promise<AdminIPBan> {
+  return unwrap((await client.post<ApiEnvelope<AdminIPBan>>('/admin/ip-bans', payload)).data)
+}
+
+export async function removeAdminBan(id: number, client: AxiosInstance = adminApiClient): Promise<{ deleted: boolean }> {
+  return unwrap((await client.delete<ApiEnvelope<{ deleted: boolean }>>(`/admin/ip-bans/${id}`)).data)
+}
+
+export async function chatWithAdminAI(
+  messages: AdminAIMessage[],
+  client: AxiosInstance = adminApiClient
+): Promise<{ answer: string; mode: string; model: string }> {
+  return unwrap((await client.post<ApiEnvelope<{ answer: string; mode: string; model: string }>>('/admin/ai/chat', { messages })).data)
+}
+
+export async function beautifyAdminPost(
+  payload: Pick<AdminPostPayload, 'title' | 'summary' | 'content'>,
+  client: AxiosInstance = adminApiClient
+): Promise<Pick<AdminPostPayload, 'title' | 'summary' | 'content'>> {
+  return unwrap((await client.post<ApiEnvelope<Pick<AdminPostPayload, 'title' | 'summary' | 'content'>>>('/admin/ai/beautify', payload)).data)
 }
 
 export async function uploadAdminImage(file: File, client: AxiosInstance = adminApiClient): Promise<AdminUploadResult> {

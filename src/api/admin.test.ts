@@ -4,9 +4,15 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   ADMIN_UNAUTHORIZED_EVENT,
   createAdminApiClient,
+  createAdminBan,
+  getAdminAnalytics,
   getAdminComments,
   getAdminDashboard,
   getAdminProfile,
+  getAdminUsers,
+  chatWithAdminAI,
+  beautifyAdminPost,
+  removeAdminBan,
   loginAdmin,
   updateAdminComment,
   updateAdminSettings
@@ -215,6 +221,37 @@ describe('admin api', () => {
 
     expect(requests).toEqual(['GET /admin/dashboard', 'GET /admin/comments', 'PUT /admin/comments/9'])
   })
+  it('calls real user, analytics, security and AI endpoints', async () => {
+    const requests: string[] = []
+    const client = createAdminApiClient({
+      adapter: async (config) => {
+        requests.push(`${config.method?.toUpperCase()} ${config.url}`)
+        if (config.url === '/admin/users') return okEnvelope({ list: [], page: 1, pageSize: 10, total: 0 }, config)
+        if (config.url === '/admin/analytics') return okEnvelope({ totalRequests: 1, todayRequests: 1, uniqueIPs: 1, failedRequests: 0, topIPs: [], topPaths: [], recentBans: [] }, config)
+        if (config.url === '/admin/ip-bans' && config.method === 'post') return okEnvelope({ id: 1, ip: '203.0.113.1', active: true }, config)
+        if (config.url === '/admin/ip-bans/1') return okEnvelope({ deleted: true }, config)
+        if (config.url === '/admin/ai/chat') return okEnvelope({ answer: 'ok', mode: 'deepseek', model: 'deepseek-chat' }, config)
+        if (config.url === '/admin/ai/beautify') return okEnvelope({ title: 'T', summary: 'S', content: '# C' }, config)
+        throw new Error(`unexpected url ${config.url}`)
+      }
+    })
+
+    await expect(getAdminUsers({}, client)).resolves.toMatchObject({ total: 0 })
+    await expect(getAdminAnalytics(client)).resolves.toMatchObject({ uniqueIPs: 1 })
+    await expect(createAdminBan({ ip: '203.0.113.1' }, client)).resolves.toMatchObject({ active: true })
+    await expect(removeAdminBan(1, client)).resolves.toEqual({ deleted: true })
+    await expect(chatWithAdminAI([{ role: 'user', content: 'hi' }], client)).resolves.toMatchObject({ mode: 'deepseek' })
+    await expect(beautifyAdminPost({ title: 'T', summary: 'S', content: 'C' }, client)).resolves.toMatchObject({ content: '# C' })
+    expect(requests).toEqual([
+      'GET /admin/users',
+      'GET /admin/analytics',
+      'POST /admin/ip-bans',
+      'DELETE /admin/ip-bans/1',
+      'POST /admin/ai/chat',
+      'POST /admin/ai/beautify'
+    ])
+  })
+
 })
 
 function okEnvelope(data: unknown, config: Parameters<AxiosAdapter>[0]) {

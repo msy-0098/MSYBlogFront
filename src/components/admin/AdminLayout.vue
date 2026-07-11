@@ -5,12 +5,14 @@ import {
   Files,
   FolderOpened,
   House,
+  Lock,
+  UserFilled,
   PriceTag,
   Search,
   Setting,
   SwitchButton
 } from '@element-plus/icons-vue'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { useAuthStore } from '../../stores/auth'
@@ -33,8 +35,21 @@ const navItems = [
   { path: '/admin/tags', label: '标签', icon: PriceTag },
   { path: '/admin/projects', label: '项目', icon: FolderOpened },
   { path: '/admin/comments', label: '评论', icon: ChatDotRound },
+  { path: '/admin/users', label: '用户', icon: UserFilled },
+  { path: '/admin/security', label: '访问安全', icon: Lock },
   { path: '/admin/settings', label: '设置', icon: Setting }
 ]
+
+onMounted(async () => {
+  if (!authStore.token) return
+
+  try {
+    await authStore.loadProfile()
+  } catch {
+    // The API interceptor handles an expired session; keep the shell renderable
+    // if the profile request fails for a transient reason.
+  }
+})
 
 function logout() {
   authStore.logout()
@@ -82,8 +97,9 @@ function logout() {
         </div>
 
         <div class="topbar-actions">
-          <div class="admin-avatar">
-            {{ authStore.user?.username?.charAt(0).toUpperCase() || 'A' }}
+          <div class="admin-topbar-user">
+            <div class="admin-avatar">{{ authStore.user?.nickname?.charAt(0) || authStore.user?.username?.charAt(0).toUpperCase() || 'A' }}</div>
+            <div><strong>{{ authStore.user?.nickname || authStore.user?.username || '管理员' }}</strong><small>{{ authStore.user?.email || authStore.user?.username || '管理员账号' }}</small></div>
           </div>
         </div>
       </el-header>

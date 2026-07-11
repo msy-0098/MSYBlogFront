@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { reactive, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
 
 import {
   type AdminPostPayload,
   type AdminPostStatus,
   type AdminTaxonomy,
+  beautifyAdminPost,
   uploadAdminImage
 } from '../../api/admin'
 
@@ -33,6 +34,8 @@ const statusOptions: Array<{ label: string; value: AdminPostStatus }> = [
   { label: '发布', value: 'published' },
   { label: '隐藏', value: 'hidden' }
 ]
+
+const beautifying = ref(false)
 
 const form = reactive({
   title: '',
@@ -75,6 +78,30 @@ function submitForm() {
     tagIds: form.tagIds.map((id) => Number(id)).filter((id) => Number.isFinite(id) && id > 0),
     publishedAt: toRfc3339(form.publishedAt)
   })
+}
+
+async function beautifyContent() {
+  if (!form.content.trim()) {
+    ElMessage.warning('请先填写文章正文呀')
+    return
+  }
+
+  beautifying.value = true
+  try {
+    const result = await beautifyAdminPost({
+      title: form.title,
+      summary: form.summary,
+      content: form.content
+    })
+    form.title = result.title
+    form.summary = result.summary
+    form.content = result.content
+    ElMessage.success('DeepSeek 润色完成啦')
+  } catch {
+    ElMessage.error('DeepSeek 暂时不可用，请检查服务端配置')
+  } finally {
+    beautifying.value = false
+  }
 }
 
 async function uploadCover(event: Event) {
