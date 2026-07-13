@@ -122,17 +122,17 @@ describe('AdminLayout', () => {
     expect(drawer.props('title')).toBe('管理导航')
   })
 
-  it('closes the mobile navigation drawer when the route changes', async () => {
+  it('closes the mobile navigation drawer when only the full path changes', async () => {
     const wrapper = mountLayout()
     const drawer = wrapper.findComponent({ name: 'ElDrawer' })
 
     await wrapper.get('[data-test="admin-mobile-menu"]').trigger('click')
     expect(drawer.props('modelValue')).toBe(true)
 
-    route.path = '/admin/posts'
-    route.fullPath = '/admin/posts'
+    route.fullPath = '/admin?tab=posts'
     await nextTick()
 
+    expect(route.path).toBe('/admin')
     expect(drawer.props('modelValue')).toBe(false)
   })
 
