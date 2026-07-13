@@ -107,6 +107,8 @@ describe('App scroll motion', () => {
     expect(adminCss).not.toMatch(/^\s*body\s*\{/m)
     expect(adminCss).not.toMatch(/^\s*\.el-button\b/m)
     expect(adminCss).not.toMatch(/^\s*\.el-table\b/m)
+    expect(adminCss).not.toMatch(/^\s*\.el-menu-item\b/m)
+    expect(adminCss).not.toMatch(/^\s*\.el-drawer__body\b/m)
     expect(adminCss).toMatch(/\.admin-mobile-menu\s+\.el-menu-item/m)
   })
 

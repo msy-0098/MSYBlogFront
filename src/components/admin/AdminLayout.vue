@@ -12,7 +12,7 @@ import {
   Setting,
   SwitchButton
 } from '@element-plus/icons-vue'
-import { computed, onMounted, ref, type Component } from 'vue'
+import { computed, onMounted, ref, watch, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { useAuthStore } from '../../stores/auth'
@@ -89,6 +89,8 @@ onMounted(async () => {
   }
 })
 
+watch(() => route.fullPath, closeMobileNav)
+
 function menuIndex(item: AdminNavItem) {
   return item.path ?? `coming-soon-${item.label}`
 }
@@ -106,7 +108,7 @@ function logout() {
 <template>
   <el-container class="admin-shell" data-test="admin-shell">
     <el-aside class="admin-sidebar" data-test="admin-sidebar" width="248px">
-      <RouterLink class="admin-brand" to="/admin">
+      <RouterLink class="admin-brand" to="/admin" aria-label="博客管理台首页" title="博客管理台">
         <span class="admin-brand-mark"></span>
         <div class="admin-brand-text">
           <strong>博客管理台</strong>
@@ -123,6 +125,8 @@ function logout() {
               :key="menuIndex(item)"
               :index="menuIndex(item)"
               :disabled="item.disabled"
+              :aria-label="item.label"
+              :title="item.label"
             >
               <el-icon><component :is="item.icon" /></el-icon>
               <span class="admin-nav-item-label">{{ item.label }}</span>
@@ -133,7 +137,7 @@ function logout() {
       </div>
 
       <div class="admin-sidebar-footer">
-        <el-button class="admin-logout-btn" :icon="SwitchButton" text @click="logout">
+        <el-button class="admin-logout-btn" :icon="SwitchButton" text aria-label="退出登录" title="退出登录" @click="logout">
           <span class="admin-logout-label">退出登录</span>
         </el-button>
       </div>
@@ -148,6 +152,7 @@ function logout() {
           text
           data-test="admin-mobile-menu"
           aria-label="打开管理导航"
+          :aria-expanded="mobileNavOpen"
           @click="mobileNavOpen = true"
         />
 
@@ -170,9 +175,9 @@ function logout() {
     </el-container>
   </el-container>
 
-  <el-drawer v-model="mobileNavOpen" class="admin-mobile-drawer" direction="ltr" size="min(20rem, 88vw)" :with-header="false">
+  <el-drawer v-model="mobileNavOpen" class="admin-mobile-drawer" direction="ltr" size="min(20rem, 88vw)" title="管理导航" :with-header="false">
     <nav class="admin-mobile-nav" data-test="admin-mobile-nav" aria-label="管理导航">
-      <RouterLink class="admin-brand" to="/admin" @click="closeMobileNav">
+      <RouterLink class="admin-brand" to="/admin" aria-label="博客管理台首页" title="博客管理台" @click="closeMobileNav">
         <span class="admin-brand-mark"></span>
         <div class="admin-brand-text">
           <strong>博客管理台</strong>
@@ -190,6 +195,8 @@ function logout() {
               class="admin-mobile-menu-item"
               :index="menuIndex(item)"
               :disabled="item.disabled"
+              :aria-label="item.label"
+              :title="item.label"
               @click="closeMobileNav"
             >
               <el-icon><component :is="item.icon" /></el-icon>
@@ -201,7 +208,7 @@ function logout() {
       </div>
 
       <div class="admin-sidebar-footer">
-        <el-button class="admin-logout-btn" :icon="SwitchButton" text @click="logout">
+        <el-button class="admin-logout-btn" :icon="SwitchButton" text aria-label="退出登录" title="退出登录" @click="logout">
           <span class="admin-logout-label">退出登录</span>
         </el-button>
       </div>

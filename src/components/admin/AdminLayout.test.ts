@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { nextTick, reactive } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -25,10 +26,17 @@ const authStore = {
   logout: vi.fn()
 }
 
+const route = reactive({
+  path: '/admin',
+  fullPath: '/admin'
+})
+
 const ElDrawerStub = {
   name: 'ElDrawer',
   props: {
-    modelValue: Boolean
+    modelValue: Boolean,
+    title: String,
+    withHeader: Boolean
   },
   template: '<aside v-if="modelValue"><slot /></aside>'
 }
@@ -55,7 +63,9 @@ function mountLayout() {
 
 describe('AdminLayout', () => {
   beforeEach(() => {
-    vi.mocked(useRoute).mockReturnValue({ path: '/admin' } as ReturnType<typeof useRoute>)
+    route.path = '/admin'
+    route.fullPath = '/admin'
+    vi.mocked(useRoute).mockReturnValue(route as ReturnType<typeof useRoute>)
     vi.mocked(useRouter).mockReturnValue({ push: vi.fn() } as unknown as ReturnType<typeof useRouter>)
     vi.mocked(useAuthStore).mockReturnValue(authStore as unknown as ReturnType<typeof useAuthStore>)
   })
@@ -85,19 +95,65 @@ describe('AdminLayout', () => {
 
   it('exposes an accessible mobile menu button', () => {
     const wrapper = mountLayout()
+    const button = wrapper.get('[data-test="admin-mobile-menu"]')
 
-    expect(wrapper.get('[data-test="admin-mobile-menu"]').attributes('aria-label')).toBe('打开管理导航')
+    expect(button.attributes('aria-label')).toBe('打开管理导航')
+    expect(button.attributes('aria-expanded')).toBe('false')
   })
 
   it('opens the mobile navigation drawer from the mobile menu button', async () => {
     const wrapper = mountLayout()
     const drawer = wrapper.findComponent({ name: 'ElDrawer' })
+    const button = wrapper.get('[data-test="admin-mobile-menu"]')
 
     expect(drawer.props('modelValue')).toBe(false)
 
-    await wrapper.get('[data-test="admin-mobile-menu"]').trigger('click')
+    await button.trigger('click')
 
     expect(drawer.props('modelValue')).toBe(true)
+    expect(button.attributes('aria-expanded')).toBe('true')
+  })
+
+  it('supplies a title to the headerless mobile drawer', () => {
+    const wrapper = mountLayout()
+    const drawer = wrapper.findComponent({ name: 'ElDrawer' })
+
+    expect(drawer.props('withHeader')).toBe(false)
+    expect(drawer.props('title')).toBe('管理导航')
+  })
+
+  it('closes the mobile navigation drawer when the route changes', async () => {
+    const wrapper = mountLayout()
+    const drawer = wrapper.findComponent({ name: 'ElDrawer' })
+
+    await wrapper.get('[data-test="admin-mobile-menu"]').trigger('click')
+    expect(drawer.props('modelValue')).toBe(true)
+
+    route.path = '/admin/posts'
+    route.fullPath = '/admin/posts'
+    await nextTick()
+
+    expect(drawer.props('modelValue')).toBe(false)
+  })
+
+  it('keeps tablet sidebar controls labelled when their visible text is hidden', () => {
+    const wrapper = mountLayout()
+    const sidebar = wrapper.get('[data-test="admin-sidebar"]')
+
+    const brand = sidebar.get('.admin-brand')
+    expect(brand.attributes('aria-label')).toBe('博客管理台首页')
+    expect(brand.attributes('title')).toBe('博客管理台')
+
+    const navigationItems = sidebar.findAll('.admin-menu button')
+    expect(navigationItems).not.toHaveLength(0)
+    for (const item of navigationItems) {
+      expect(item.attributes('aria-label')).toBeTruthy()
+      expect(item.attributes('title')).toBeTruthy()
+    }
+
+    const logout = sidebar.get('.admin-logout-btn')
+    expect(logout.attributes('aria-label')).toBe('退出登录')
+    expect(logout.attributes('title')).toBe('退出登录')
   })
 
   it('closes the mobile navigation drawer after a navigation item is clicked', async () => {
