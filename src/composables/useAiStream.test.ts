@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { ADMIN_UNAUTHORIZED_EVENT } from '../api/admin'
 import { createAdminAIStreamClient, createSSEParser } from './useAiStream'
 
 const encoder = new TextEncoder()
@@ -75,5 +76,67 @@ describe('admin AI SSE stream', () => {
 
     await expect(client.stream(7, '测试错误', { onError })).resolves.toEqual({ status: 'failed' })
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: '模型暂不可用' }))
+  })
+  it('uses the shared admin unauthorized path when fetch receives 401', async () => {
+    localStorage.setItem('admin_token', 'expired-token')
+    localStorage.setItem('admin_user', '{"id":1}')
+    const listener = vi.fn()
+    const onError = vi.fn()
+    window.addEventListener(ADMIN_UNAUTHORIZED_EVENT, listener)
+
+    try {
+      const client = createAdminAIStreamClient({ fetchImpl: vi.fn().mockResolvedValue(new Response(null, { status: 401 })) })
+
+      await expect(client.stream(7, '需要重新登录', { onError })).resolves.toEqual({ status: 'failed' })
+
+      expect(localStorage.getItem('admin_token')).toBeNull()
+      expect(localStorage.getItem('admin_user')).toBeNull()
+      expect(listener).toHaveBeenCalledOnce()
+      expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'AI 请求失败（401）' }))
+    } finally {
+      window.removeEventListener(ADMIN_UNAUTHORIZED_EVENT, listener)
+    }
+  })
+
+  it('reports non-2xx responses as failed stream requests', async () => {
+    const onError = vi.fn()
+    const client = createAdminAIStreamClient({ fetchImpl: vi.fn().mockResolvedValue(new Response(null, { status: 503 })) })
+
+    await expect(client.stream(7, '服务状态', { onError })).resolves.toEqual({ status: 'failed' })
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'AI 请求失败（503）' }))
+  })
+
+  it('reports a response that closes without done as an interrupted stream', async () => {
+    const onError = vi.fn()
+    const client = createAdminAIStreamClient({
+      fetchImpl: vi.fn().mockResolvedValue(new Response('event: delta\ndata: {"content":"只到一半"}\n\n', { headers: { 'Content-Type': 'text/event-stream' } }))
+    })
+
+    await expect(client.stream(7, '中断测试', { onError })).resolves.toEqual({ status: 'failed' })
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'AI 响应在完成前中断' }))
+  })
+
+  it('preserves UTF-8 characters split across raw stream bytes', async () => {
+    const payload = encoder.encode('event: delta\ndata: {"content":"你好"}\n\nevent: done\ndata: {"messageId":8}\n\n')
+    const firstChineseByte = payload.indexOf(0xe4)
+    const onDelta = vi.fn()
+    const client = createAdminAIStreamClient({
+      fetchImpl: vi.fn().mockResolvedValue(
+        new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(payload.slice(0, firstChineseByte + 1))
+              controller.enqueue(payload.slice(firstChineseByte + 1, firstChineseByte + 2))
+              controller.enqueue(payload.slice(firstChineseByte + 2))
+              controller.close()
+            }
+          }),
+          { headers: { 'Content-Type': 'text/event-stream' } }
+        )
+      )
+    })
+
+    await expect(client.stream(7, '字节分包', { onDelta })).resolves.toEqual({ status: 'completed' })
+    expect(onDelta).toHaveBeenCalledWith({ content: '你好' })
   })
 })

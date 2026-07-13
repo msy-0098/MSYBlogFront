@@ -1,3 +1,5 @@
+import { handleAdminUnauthorized } from '../api/admin'
+
 export type AdminAIStreamEventName = 'meta' | 'delta' | 'done' | 'error'
 
 export interface AdminAIStreamEvent {
@@ -69,6 +71,7 @@ export function createAdminAIStreamClient(options: AdminAIStreamClientOptions = 
           signal: controller.signal
         })
 
+        if (response.status === 401) handleAdminUnauthorized()
         if (!response.ok) {
           throw new Error(`AI 请求失败（${response.status}）`)
         }

@@ -43,4 +43,23 @@ describe('AdminDashboardView', () => {
     expect(wrapper.find('textarea').exists()).toBe(false)
     expect(wrapper.get('[data-test="ai-workspace-link"]').attributes('data-to')).toBe('/admin/ai')
   })
+  it('keeps the dashboard renderable when the backend omits aiAnalysis', async () => {
+    vi.mocked(getAdminDashboard).mockResolvedValue({ ...dashboard, aiAnalysis: undefined } as any)
+    const wrapper = mount(AdminDashboardView, {
+      global: {
+        stubs: {
+          ElButton: { template: '<button><slot /></button>' },
+          ElIcon: { template: '<i><slot /></i>' },
+          ElTable: { template: '<div><slot /></div>' },
+          ElTableColumn: { template: '<div />' },
+          ElTag: { template: '<span><slot /></span>' },
+          RouterLink: { props: ['to'], template: '<a :data-to="to"><slot /></a>' }
+        }
+      }
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('本地兜底分析')
+    expect(wrapper.text()).toContain('正在等待数据呀...')
+  })
 })

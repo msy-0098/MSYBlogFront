@@ -189,7 +189,7 @@ export interface AdminAIMessage {
 export interface AdminDashboard {
   stats: AdminDashboardStats
   analytics?: AdminAnalytics
-  aiAnalysis: AdminAIAnalysis
+  aiAnalysis?: AdminAIAnalysis
   recentComments: AdminComment[]
 }
 
@@ -267,12 +267,19 @@ function notifyUnauthorized(onUnauthorized?: () => void) {
   }
 }
 
+function clearStoredAdminSession() {
+  if (typeof localStorage === 'undefined') return
+  localStorage.removeItem('admin_token')
+  localStorage.removeItem('admin_user')
+}
+
+export function handleAdminUnauthorized() {
+  notifyUnauthorized(clearStoredAdminSession)
+}
+
 export const adminApiClient = createAdminApiClient({
   getToken: () => localStorage.getItem('admin_token'),
-  onUnauthorized: () => {
-    localStorage.removeItem('admin_token')
-    localStorage.removeItem('admin_user')
-  }
+  onUnauthorized: clearStoredAdminSession
 })
 
 export async function loginAdmin(

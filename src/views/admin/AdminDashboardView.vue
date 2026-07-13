@@ -54,7 +54,7 @@ async function loadDashboard() {
           <h2>内容、访问、安全和 AI 一屏掌握</h2>
           <p>访问日志会持续记录真实请求，发现扫描型恶意 IP 后自动封禁，并可在访问安全页复核。</p>
         </div>
-        <strong>{{ dashboard?.aiAnalysis.mode === 'deepseek' ? 'DeepSeek 已接入' : '本地兜底分析' }}</strong>
+        <strong>{{ dashboard?.aiAnalysis?.mode === 'deepseek' ? 'DeepSeek 已接入' : '本地兜底分析' }}</strong>
       </article>
 
       <div class="admin-dashboard-grid">
@@ -75,10 +75,10 @@ async function loadDashboard() {
         <article class="admin-panel admin-analysis-card">
           <div class="admin-analysis-heading">
             <el-icon><DataAnalysis /></el-icon>
-            <div><span>AI 运营分析</span><strong>{{ dashboard?.aiAnalysis.mode === 'deepseek' ? 'DeepSeek 分析' : '本地分析' }}</strong></div>
+            <div><span>AI 运营分析</span><strong>{{ dashboard?.aiAnalysis?.mode === 'deepseek' ? 'DeepSeek 分析' : '本地分析' }}</strong></div>
           </div>
-          <p>{{ dashboard?.aiAnalysis.summary || '正在等待数据呀...' }}</p>
-          <ul><li v-for="signal in dashboard?.aiAnalysis.signals || []" :key="signal">{{ signal }}</li></ul>
+          <p>{{ dashboard?.aiAnalysis?.summary || '正在等待数据呀...' }}</p>
+          <ul><li v-for="signal in dashboard?.aiAnalysis?.signals || []" :key="signal">{{ signal }}</li></ul>
         </article>
 
         <article class="admin-panel admin-recent-comments">

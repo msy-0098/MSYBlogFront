@@ -60,6 +60,10 @@ async function saveRename(id: number) {
   if (updated) renamingId.value = null
 }
 
+async function deleteMobileConversation(id: number) {
+  await store.deleteConversation(id)
+}
+
 function onMessageListScroll() {
   const element = messageList.value
   if (!element) return
@@ -124,12 +128,24 @@ function formatTime(value: string | null | undefined) {
         <template #reference><el-button class="ai-clear-button" text type="danger" :disabled="!store.conversations.length">清空全部记录</el-button></template>
       </el-popconfirm>
     </aside>
-    <el-drawer v-model="mobileConversationsOpen" class="ai-mobile-drawer" title="AI 会话" direction="ltr" size="min(90vw, 320px)">
+    <el-drawer v-model="mobileConversationsOpen" class="ai-mobile-drawer" data-test="ai-mobile-drawer" aria-label="AI 会话列表" title="AI 会话" direction="ltr" size="min(90vw, 320px)">
       <div class="ai-drawer-actions"><el-button type="primary" @click="createConversation">新建会话</el-button></div>
       <div class="ai-conversation-scroll">
-        <button v-for="conversation in store.conversations" :key="conversation.id" class="ai-conversation-select" type="button" @click="store.openConversation(conversation.id); mobileConversationsOpen = false">
-          <strong>{{ conversation.title || '新对话' }}</strong><span>{{ conversation.messageCount }} 条消息 · {{ formatTime(conversation.lastMessageAt) }}</span>
-        </button>
+        <article v-for="conversation in store.conversations" :key="conversation.id" class="ai-mobile-conversation-item">
+          <button class="ai-conversation-select" :data-test="`ai-mobile-conversation-${conversation.id}`" type="button" :aria-current="store.current?.id === conversation.id ? 'true' : undefined" @click="store.openConversation(conversation.id); mobileConversationsOpen = false">
+            <strong>{{ conversation.title || '新对话' }}</strong><span>{{ conversation.messageCount }} 条消息 · {{ formatTime(conversation.lastMessageAt) }}</span>
+          </button>
+          <div class="ai-mobile-conversation-actions">
+            <el-button text circle :data-test="`ai-mobile-rename-${conversation.id}`" :aria-label="`重命名会话：${conversation.title || '新对话'}`" :title="`重命名会话：${conversation.title || '新对话'}`" @click="startRename(conversation.id, conversation.title)"><el-icon><EditPen /></el-icon></el-button>
+            <el-popconfirm :data-test="`ai-mobile-delete-confirm-${conversation.id}`" :title="`删除会话“${conversation.title || '新对话'}”后无法恢复，确定删除吗？`" confirm-button-text="删除" cancel-button-text="保留" @confirm="deleteMobileConversation(conversation.id)">
+              <template #reference><el-button text circle type="danger" :data-test="`ai-mobile-delete-${conversation.id}`" :aria-label="`删除会话：${conversation.title || '新对话'}`" :title="`删除会话：${conversation.title || '新对话'}`"><el-icon><Delete /></el-icon></el-button></template>
+            </el-popconfirm>
+          </div>
+          <form v-if="renamingId === conversation.id" class="ai-rename-form" data-test="ai-mobile-rename-form" @submit.prevent="saveRename(conversation.id)">
+            <el-input v-model="renameDraft" data-test="ai-mobile-rename-input" aria-label="会话标题" maxlength="80" />
+            <el-button native-type="submit" type="primary">保存</el-button>
+          </form>
+        </article>
       </div>
       <el-popconfirm title="这会删除全部 AI 会话记录，确定继续吗？" @confirm="store.clearConversations(); mobileConversationsOpen = false"><template #reference><el-button text type="danger">清空全部记录</el-button></template></el-popconfirm>
     </el-drawer>
@@ -137,7 +153,7 @@ function formatTime(value: string | null | undefined) {
 
       <header class="ai-chat-header">
         <div><p class="section-kicker">会话</p><h2>{{ store.current?.title || '选择或新建一个会话' }}</h2></div>
-        <el-button class="ai-mobile-conversation-button" text @click="mobileConversationsOpen = true">会话</el-button>
+        <el-button class="ai-mobile-conversation-button" text data-test="ai-mobile-conversation-toggle" aria-label="打开 AI 会话列表" title="打开 AI 会话列表" :aria-expanded="mobileConversationsOpen" @click="mobileConversationsOpen = true">会话</el-button>
         <span v-if="store.streaming" class="ai-stream-indicator" role="status">正在生成</span>
       </header>
 
