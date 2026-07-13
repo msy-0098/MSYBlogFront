@@ -1,15 +1,12 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ChatDotRound, DataAnalysis, Files, TrendCharts, User, View } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { computed, onMounted, ref } from 'vue'
 
-import { chatWithAdminAI, getAdminDashboard, type AdminAIMessage, type AdminDashboard } from '../../api/admin'
+import { getAdminDashboard, type AdminDashboard } from '../../api/admin'
 
 const loading = ref(false)
 const dashboard = ref<AdminDashboard | null>(null)
-const assistantPrompt = ref('')
-const assistantAnswer = ref('')
-const assistantLoading = ref(false)
 
 const metrics = computed(() => [
   { label: '文章总数', value: String(dashboard.value?.stats.postCount ?? 0), detail: `已发布 ${dashboard.value?.stats.publishedPostCount ?? 0} 篇`, color: '#4285F4', icon: Files },
@@ -31,23 +28,6 @@ async function loadDashboard() {
   }
 }
 
-async function askAssistant() {
-  const prompt = assistantPrompt.value.trim()
-  if (!prompt) return
-  assistantLoading.value = true
-  try {
-    const messages: AdminAIMessage[] = [
-      { role: 'system', content: '你是马森雨博客的管理端 AI 助手，请用简洁、可执行的中文回答。' },
-      { role: 'user', content: prompt }
-    ]
-    const result = await chatWithAdminAI(messages)
-    assistantAnswer.value = result.answer
-  } catch {
-    ElMessage.error('DeepSeek 助手暂时不可用，请检查服务端环境变量')
-  } finally {
-    assistantLoading.value = false
-  }
-}
 </script>
 
 <template>
@@ -66,7 +46,8 @@ async function askAssistant() {
       </div>
     </div>
 
-    <div v-loading="loading" class="admin-dashboard-stack">
+    <div class="admin-dashboard-stack">
+      <p v-if="loading" class="admin-dashboard-loading-note">正在更新工作台数据呀…</p>
       <article class="admin-brief-panel">
         <div>
           <span>实时概览</span>
@@ -123,10 +104,9 @@ async function askAssistant() {
         </article>
 
         <article class="admin-panel">
-          <div class="admin-analysis-heading"><el-icon><ChatDotRound /></el-icon><div><span>DeepSeek 助手</span><strong>随时问问呀</strong></div></div>
-          <el-input v-model="assistantPrompt" type="textarea" :rows="4" placeholder="例如：帮我分析今天访问异常的可能原因" />
-          <div class="admin-editor-actions"><el-button type="primary" :loading="assistantLoading" @click="askAssistant">发送给 DeepSeek</el-button></div>
-          <el-alert v-if="assistantAnswer" :title="assistantAnswer" type="success" :closable="false" show-icon />
+          <div class="admin-analysis-heading"><el-icon><ChatDotRound /></el-icon><div><span>AI 工作区</span><strong>持续会话</strong></div></div>
+          <p>需要深入分析、写作或整理任务时，在独立工作区中保留完整上下文呀。</p>
+          <RouterLink class="admin-link-button admin-link-button-primary" data-test="ai-workspace-link" to="/admin/ai">进入 AI 工作区</RouterLink>
         </article>
       </div>
     </div>

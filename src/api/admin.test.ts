@@ -15,7 +15,13 @@ import {
   removeAdminBan,
   loginAdmin,
   updateAdminComment,
-  updateAdminSettings
+  updateAdminSettings,
+  clearAdminAIConversations,
+  createAdminAIConversation,
+  deleteAdminAIConversation,
+  getAdminAIConversation,
+  listAdminAIConversations,
+  renameAdminAIConversation
 } from './admin'
 
 describe('admin api', () => {
@@ -252,6 +258,43 @@ describe('admin api', () => {
     ])
   })
 
+  it('uses the server-backed admin AI conversation endpoints', async () => {
+    const requests: Array<{ method: string; url: string; data?: unknown }> = []
+    const conversation = { id: 7, title: '运营建议', messageCount: 2, lastMessageAt: '2026-07-13T12:00:00Z' }
+    const client = createAdminApiClient({
+      adapter: async (config) => {
+        requests.push({
+          method: String(config.method).toUpperCase(),
+          url: String(config.url),
+          data: config.data ? JSON.parse(String(config.data)) : undefined
+        })
+
+        if (config.url === '/admin/ai/conversations' && config.method === 'get') return okEnvelope([conversation], config)
+        if (config.url === '/admin/ai/conversations' && config.method === 'post') return okEnvelope(conversation, config)
+        if (config.url === '/admin/ai/conversations/7' && config.method === 'get') return okEnvelope({ ...conversation, messages: [] }, config)
+        if (config.url === '/admin/ai/conversations/7' && config.method === 'patch') return okEnvelope({ ...conversation, title: '重命名后' }, config)
+        if (config.url === '/admin/ai/conversations/7' && config.method === 'delete') return okEnvelope({ deleted: true }, config)
+        if (config.url === '/admin/ai/conversations' && config.method === 'delete') return okEnvelope({ deleted: true }, config)
+        throw new Error(`unexpected request ${config.method} ${config.url}`)
+      }
+    })
+
+    await expect(listAdminAIConversations(client)).resolves.toEqual([conversation])
+    await expect(createAdminAIConversation(client)).resolves.toEqual(conversation)
+    await expect(getAdminAIConversation(7, client)).resolves.toMatchObject({ id: 7, messages: [] })
+    await expect(renameAdminAIConversation(7, '重命名后', client)).resolves.toMatchObject({ title: '重命名后' })
+    await expect(deleteAdminAIConversation(7, client)).resolves.toEqual({ deleted: true })
+    await expect(clearAdminAIConversations(client)).resolves.toEqual({ deleted: true })
+
+    expect(requests).toEqual([
+      { method: 'GET', url: '/admin/ai/conversations', data: undefined },
+      { method: 'POST', url: '/admin/ai/conversations', data: {} },
+      { method: 'GET', url: '/admin/ai/conversations/7', data: undefined },
+      { method: 'PATCH', url: '/admin/ai/conversations/7', data: { title: '重命名后' } },
+      { method: 'DELETE', url: '/admin/ai/conversations/7', data: undefined },
+      { method: 'DELETE', url: '/admin/ai/conversations', data: undefined }
+    ])
+  })
 })
 
 function okEnvelope(data: unknown, config: Parameters<AxiosAdapter>[0]) {

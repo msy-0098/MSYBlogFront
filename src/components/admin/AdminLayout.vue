@@ -58,7 +58,7 @@ const navGroups: AdminNavGroup[] = [
   },
   {
     label: '智能工具',
-    items: [{ label: 'AI 助手', icon: ChatDotRound, disabled: true, comingSoon: true }]
+    items: [{ path: '/admin/ai', label: 'AI 助手', icon: ChatDotRound }]
   },
   {
     label: '系统',

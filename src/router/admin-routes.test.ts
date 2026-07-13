@@ -70,6 +70,13 @@ describe('admin routes', () => {
       cleanup()
     }
   })
+  it('registers a protected admin AI workspace route', () => {
+    const flattened = flattenRoutes(routes)
+    const aiRoute = findRoute(flattened, '/admin/ai')
+
+    expect(aiRoute?.record.name).toBe('admin-ai')
+    expect(aiRoute?.record.meta?.requiresAuth).toBe(true)
+  })
 })
 
 type FlattenedRoute = {

@@ -5,6 +5,7 @@ import { ADMIN_UNAUTHORIZED_EVENT } from '../api/admin'
 import AdminLayout from '../components/admin/AdminLayout.vue'
 import { useAuthStore } from '../stores/auth'
 import AdminDashboardView from '../views/admin/AdminDashboardView.vue'
+import AdminAIWorkspaceView from '../views/admin/AdminAIWorkspaceView.vue'
 import AdminLoginView from '../views/admin/AdminLoginView.vue'
 import AdminCommentsView from '../views/admin/AdminCommentsView.vue'
 import AdminPostEditView from '../views/admin/AdminPostEditView.vue'
@@ -105,6 +106,13 @@ export const routes: RouteRecordRaw[] = [
         }
       },
       {
+        path: 'ai',
+        name: 'admin-ai',
+        component: AdminAIWorkspaceView,
+        meta: {
+          requiresAuth: true
+        }
+      },      {
         path: 'posts',
         name: 'admin-posts',
         component: AdminPostsView,

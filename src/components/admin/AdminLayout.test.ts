@@ -171,4 +171,11 @@ describe('AdminLayout', () => {
 
     expect(wrapper.find('.mock-search-bar').exists()).toBe(false)
   })
+  it('renders AI 助手 as an enabled navigation destination instead of a placeholder', () => {
+    const wrapper = mountLayout()
+    const aiItem = wrapper.findAll('.admin-menu button').find((item) => item.text().includes('AI 助手'))
+
+    expect(aiItem?.attributes('disabled')).toBeUndefined()
+    expect(aiItem?.text()).not.toContain('即将推出')
+  })
 })

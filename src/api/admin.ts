@@ -193,6 +193,27 @@ export interface AdminDashboard {
   recentComments: AdminComment[]
 }
 
+export type AdminAIConversationMessageStatus = 'streaming' | 'completed' | 'aborted' | 'failed'
+
+export interface AdminAIConversationMessage {
+  id: number
+  role: 'user' | 'assistant'
+  content: string
+  status?: AdminAIConversationMessageStatus
+  sequence?: number
+  createdAt?: string
+}
+
+export interface AdminAIConversationSummary {
+  id: number
+  title: string
+  messageCount: number
+  lastMessageAt: string | null
+}
+
+export interface AdminAIConversationDetail extends AdminAIConversationSummary {
+  messages: AdminAIConversationMessage[]
+}
 export interface CreateAdminApiClientOptions extends CreateAxiosDefaults {
   getToken?: () => string | null | undefined
   onUnauthorized?: () => void
@@ -401,6 +422,45 @@ export async function removeAdminBan(id: number, client: AxiosInstance = adminAp
   return unwrap((await client.delete<ApiEnvelope<{ deleted: boolean }>>(`/admin/ip-bans/${id}`)).data)
 }
 
+export async function listAdminAIConversations(
+  client: AxiosInstance = adminApiClient
+): Promise<AdminAIConversationSummary[]> {
+  return unwrap((await client.get<ApiEnvelope<AdminAIConversationSummary[]>>('/admin/ai/conversations')).data)
+}
+
+export async function createAdminAIConversation(
+  client: AxiosInstance = adminApiClient
+): Promise<AdminAIConversationSummary> {
+  return unwrap((await client.post<ApiEnvelope<AdminAIConversationSummary>>('/admin/ai/conversations', {})).data)
+}
+
+export async function getAdminAIConversation(
+  id: number,
+  client: AxiosInstance = adminApiClient
+): Promise<AdminAIConversationDetail> {
+  return unwrap((await client.get<ApiEnvelope<AdminAIConversationDetail>>(`/admin/ai/conversations/${id}`)).data)
+}
+
+export async function renameAdminAIConversation(
+  id: number,
+  title: string,
+  client: AxiosInstance = adminApiClient
+): Promise<AdminAIConversationSummary> {
+  return unwrap((await client.patch<ApiEnvelope<AdminAIConversationSummary>>(`/admin/ai/conversations/${id}`, { title })).data)
+}
+
+export async function deleteAdminAIConversation(
+  id: number,
+  client: AxiosInstance = adminApiClient
+): Promise<{ deleted: boolean }> {
+  return unwrap((await client.delete<ApiEnvelope<{ deleted: boolean }>>(`/admin/ai/conversations/${id}`)).data)
+}
+
+export async function clearAdminAIConversations(
+  client: AxiosInstance = adminApiClient
+): Promise<{ deleted: boolean }> {
+  return unwrap((await client.delete<ApiEnvelope<{ deleted: boolean }>>('/admin/ai/conversations')).data)
+}
 export async function chatWithAdminAI(
   messages: AdminAIMessage[],
   client: AxiosInstance = adminApiClient
