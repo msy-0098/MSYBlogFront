@@ -71,6 +71,7 @@ describe('App scroll motion', () => {
 
   it('keeps editorial shell selectors out of legacy global css and scopes public content rules', () => {
     const globalCss = readFileSync(resolve(process.cwd(), 'src/styles/global.css'), 'utf8')
+    const adminCss = readFileSync(resolve(process.cwd(), 'src/styles/admin.css'), 'utf8')
     const publicContentCss = readFileSync(resolve(process.cwd(), 'src/styles/public-content.css'), 'utf8')
 
     expect(globalCss).not.toMatch(/^\s*\.app-header\s*\{/m)
@@ -88,8 +89,11 @@ describe('App scroll motion', () => {
     expect(globalCss).not.toMatch(/^\s*\.secondary-button\s*,/m)
     expect(globalCss).not.toMatch(/^\s*\.section-link\s*\{/m)
     expect(globalCss).not.toMatch(/\.section-heading\s+\.section-kicker/m)
-    expect(globalCss).toMatch(/\.admin-page-heading\s+\.section-kicker/m)
-    expect(globalCss).toMatch(/\.admin-login-panel\s+\.section-kicker/m)
+    expect(globalCss).toContain("@import './admin.css';")
+    expect(globalCss).not.toMatch(/\.admin-page-heading\s+\.section-kicker/m)
+    expect(globalCss).not.toMatch(/\.admin-login-panel\s+\.section-kicker/m)
+    expect(adminCss).toMatch(/\.admin-page-heading\s+\.section-kicker/m)
+    expect(adminCss).toMatch(/\.admin-login-panel\s+\.section-kicker/m)
 
     expect(publicContentCss).not.toMatch(/^\s*body\s*\{/m)
     expect(publicContentCss).not.toMatch(/^\s*#app\s*\{/m)

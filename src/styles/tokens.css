@@ -21,4 +21,15 @@
   --footer-height: 84px;
   --radius-pill: 999px;
   --radius-card: 24px;
+  --admin-background: #f5f7fb;
+  --admin-surface: rgba(255, 255, 255, 0.92);
+  --admin-muted: #edf3ff;
+  --admin-text-primary: #172033;
+  --admin-text-secondary: #667085;
+  --admin-border: rgba(23, 32, 51, 0.1);
+  --admin-primary: #2563eb;
+  --admin-radius-sm: 8px;
+  --admin-radius-md: 12px;
+  --admin-radius-lg: 16px;
+  --admin-shadow-sm: 0 10px 24px rgba(23, 32, 51, 0.08);
 }

@@ -8,7 +8,6 @@ import {
   Lock,
   UserFilled,
   PriceTag,
-  Search,
   Setting,
   SwitchButton
 } from '@element-plus/icons-vue'
@@ -58,8 +57,8 @@ function logout() {
 </script>
 
 <template>
-  <el-container class="admin-shell">
-    <el-aside class="admin-sidebar" width="248px">
+  <el-container class="admin-shell" data-test="admin-shell">
+    <el-aside class="admin-sidebar" data-test="admin-sidebar" width="248px">
       <RouterLink class="admin-brand" to="/admin">
         <span class="admin-brand-mark"></span>
         <div class="admin-brand-text">
@@ -83,17 +82,10 @@ function logout() {
     </el-aside>
 
     <el-container class="admin-content-wrapper">
-      <el-header class="admin-topbar" height="72px">
+      <el-header class="admin-topbar" data-test="admin-topbar" height="72px">
         <div class="topbar-context">
           <span>当前模块</span>
           <strong>{{ currentNav?.label || '管理台' }}</strong>
-        </div>
-
-        <div class="topbar-search">
-          <div class="mock-search-bar" aria-label="后台检索入口">
-            <el-icon><Search /></el-icon>
-            <span>检索文章、评论或设置...</span>
-          </div>
         </div>
 
         <div class="topbar-actions">
