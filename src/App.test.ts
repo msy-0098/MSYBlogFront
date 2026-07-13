@@ -101,6 +101,15 @@ describe('App scroll motion', () => {
     expect(publicContentCss).not.toMatch(/^\s*img\s*\{/m)
   })
 
+  it('keeps Element Plus overrides inside admin surfaces', () => {
+    const adminCss = readFileSync(resolve(process.cwd(), 'src/styles/admin.css'), 'utf8')
+
+    expect(adminCss).not.toMatch(/^\s*body\s*\{/m)
+    expect(adminCss).not.toMatch(/^\s*\.el-button\b/m)
+    expect(adminCss).not.toMatch(/^\s*\.el-table\b/m)
+    expect(adminCss).toMatch(/\.admin-mobile-menu\s+\.el-menu-item/m)
+  })
+
   it('does not apply page transition blur to ordinary non-home scrolling', async () => {
     route.path = '/posts'
     const wrapper = mountApp()

@@ -25,6 +25,14 @@ const authStore = {
   logout: vi.fn()
 }
 
+const ElDrawerStub = {
+  name: 'ElDrawer',
+  props: {
+    modelValue: Boolean
+  },
+  template: '<aside v-if="modelValue"><slot /></aside>'
+}
+
 function mountLayout() {
   return mount(AdminLayout, {
     global: {
@@ -32,11 +40,12 @@ function mountLayout() {
         ElAside: { template: '<aside><slot /></aside>' },
         ElButton: { template: '<button><slot /></button>' },
         ElContainer: { template: '<section><slot /></section>' },
+        ElDrawer: ElDrawerStub,
         ElHeader: { template: '<header><slot /></header>' },
         ElIcon: { template: '<i><slot /></i>' },
         ElMain: { template: '<main><slot /></main>' },
         ElMenu: { template: '<nav><slot /></nav>' },
-        ElMenuItem: { template: '<a><slot /></a>' },
+        ElMenuItem: { template: '<button type="button"><slot /></button>' },
         RouterLink: { template: '<a><slot /></a>' },
         RouterView: { template: '<div />' }
       }
@@ -59,6 +68,46 @@ describe('AdminLayout', () => {
     const wrapper = mountLayout()
 
     expect(wrapper.find(selector).exists()).toBe(true)
+  })
+
+  it('renders the grouped administration navigation', () => {
+    const wrapper = mountLayout()
+
+    expect(wrapper.findAll('.admin-nav-group-title').map((group) => group.text())).toEqual([
+      '概览',
+      '内容',
+      '互动',
+      '智能工具',
+      '系统'
+    ])
+    expect(wrapper.text()).toContain('AI 助手')
+  })
+
+  it('exposes an accessible mobile menu button', () => {
+    const wrapper = mountLayout()
+
+    expect(wrapper.get('[data-test="admin-mobile-menu"]').attributes('aria-label')).toBe('打开管理导航')
+  })
+
+  it('opens the mobile navigation drawer from the mobile menu button', async () => {
+    const wrapper = mountLayout()
+    const drawer = wrapper.findComponent({ name: 'ElDrawer' })
+
+    expect(drawer.props('modelValue')).toBe(false)
+
+    await wrapper.get('[data-test="admin-mobile-menu"]').trigger('click')
+
+    expect(drawer.props('modelValue')).toBe(true)
+  })
+
+  it('closes the mobile navigation drawer after a navigation item is clicked', async () => {
+    const wrapper = mountLayout()
+    const drawer = wrapper.findComponent({ name: 'ElDrawer' })
+
+    await wrapper.get('[data-test="admin-mobile-menu"]').trigger('click')
+    await wrapper.get('[data-test="admin-mobile-nav"] .admin-mobile-menu-item').trigger('click')
+
+    expect(drawer.props('modelValue')).toBe(false)
   })
 
   it('does not render the non-interactive mock search control', () => {
