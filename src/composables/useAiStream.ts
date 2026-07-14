@@ -85,39 +85,42 @@ export function createAdminAIStreamClient(options: AdminAIStreamClientOptions = 
         const reader = response.body.getReader()
         const decoder = new TextDecoder()
         const parser = createSSEParser()
-        let completed = false
-        let serverError: Error | null = null
 
-        const handleEvents = (events: AdminAIStreamEvent[]) => {
+        const handleEvents = (events: AdminAIStreamEvent[]): 'completed' | 'failed' | null => {
           for (const item of events) {
             if (item.event === 'meta') handlers.onMeta?.(item.data)
             if (item.event === 'delta') handlers.onDelta?.(item.data)
             if (item.event === 'done') {
-              completed = true
               handlers.onDone?.(item.data)
+              return 'completed'
             }
             if (item.event === 'error') {
-              serverError = new Error(readEventMessage(item.data, 'AI 生成失败'))
-              handlers.onError?.(serverError)
+              handlers.onError?.(new Error(readEventMessage(item.data, 'AI 生成失败')))
+              return 'failed'
             }
           }
+          return null
+        }
+
+        const settleProtocolTerminal = (status: 'completed' | 'failed') => {
+          void reader.cancel().catch(() => undefined)
+          return { status }
         }
 
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
-          handleEvents(parser.push(decoder.decode(value, { stream: true })))
+          const terminal = handleEvents(parser.push(decoder.decode(value, { stream: true })))
+          if (terminal) return settleProtocolTerminal(terminal)
         }
-        handleEvents(parser.push(decoder.decode()))
-        handleEvents(parser.finish())
+        const decodedTerminal = handleEvents(parser.push(decoder.decode()))
+        if (decodedTerminal) return settleProtocolTerminal(decodedTerminal)
+        const bufferedTerminal = handleEvents(parser.finish())
+        if (bufferedTerminal) return settleProtocolTerminal(bufferedTerminal)
 
-        if (serverError) return { status: 'failed' as const }
-        if (!completed) {
-          const error = new Error('AI 响应在完成前中断')
-          handlers.onError?.(error)
-          return { status: 'failed' as const }
-        }
-        return { status: 'completed' as const }
+        const error = new Error('AI 响应在完成前中断')
+        handlers.onError?.(error)
+        return { status: 'failed' as const }
       } catch (error) {
         if (controller.signal.aborted || isAbortError(error)) {
           handlers.onAbort?.()

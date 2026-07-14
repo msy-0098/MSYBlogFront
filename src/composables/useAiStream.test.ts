@@ -139,4 +139,67 @@ describe('admin AI SSE stream', () => {
     await expect(client.stream(7, '字节分包', { onDelta })).resolves.toEqual({ status: 'completed' })
     expect(onDelta).toHaveBeenCalledWith({ content: '你好' })
   })
+  it('treats done as terminal without waiting for an open stream to close', async () => {
+    const { body, controller, cancel, release } = createOpenStream('event: done\ndata: {"messageId":8}\n\n')
+    const onDone = vi.fn()
+    const onDelta = vi.fn()
+    const client = createAdminAIStreamClient({
+      fetchImpl: vi.fn().mockResolvedValue(new Response(body, { headers: { 'Content-Type': 'text/event-stream' } }))
+    })
+    const result = client.stream(7, '终态测试', { onDone, onDelta })
+
+    try {
+      await expect(settlesImmediately(result)).resolves.toEqual({ status: 'completed' })
+      expect(onDone).toHaveBeenCalledWith({ messageId: 8 })
+      expect(cancel).toHaveBeenCalledOnce()
+      expect(() => controller.enqueue(encoder.encode('event: delta\ndata: {"content":"不应回调"}\n\n'))).toThrow()
+      expect(onDelta).not.toHaveBeenCalled()
+    } finally {
+      release()
+    }
+  })
+
+  it('treats error as terminal without waiting for an open stream to close', async () => {
+    const { body, controller, cancel, release } = createOpenStream('event: error\ndata: {"message":"模型异常"}\n\n')
+    const onError = vi.fn()
+    const onDelta = vi.fn()
+    const client = createAdminAIStreamClient({
+      fetchImpl: vi.fn().mockResolvedValue(new Response(body, { headers: { 'Content-Type': 'text/event-stream' } }))
+    })
+    const result = client.stream(7, '终态错误', { onError, onDelta })
+
+    try {
+      await expect(settlesImmediately(result)).resolves.toEqual({ status: 'failed' })
+      expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: '模型异常' }))
+      expect(cancel).toHaveBeenCalledOnce()
+      expect(() => controller.enqueue(encoder.encode('event: delta\ndata: {"content":"不应回调"}\n\n'))).toThrow()
+      expect(onDelta).not.toHaveBeenCalled()
+    } finally {
+      release()
+    }
+  })
 })
+function createOpenStream(frame: string) {
+  let releasePull: () => void = () => undefined
+  const keepOpen = new Promise<void>((resolve) => {
+    releasePull = resolve
+  })
+  const cancel = vi.fn(() => keepOpen)
+  let controller!: ReadableStreamDefaultController<Uint8Array>
+  const body = new ReadableStream<Uint8Array>({
+    start(nextController) {
+      controller = nextController
+      controller.enqueue(encoder.encode(frame))
+    },
+    pull() {
+      return keepOpen
+    },
+    cancel
+  })
+
+  return { body, controller, cancel, release: releasePull }
+}
+
+async function settlesImmediately<T>(promise: Promise<T>): Promise<T | 'pending'> {
+  return Promise.race([promise, new Promise<'pending'>((resolve) => setTimeout(() => resolve('pending'), 20))])
+}

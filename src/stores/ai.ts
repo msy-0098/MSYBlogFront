@@ -25,22 +25,29 @@ export const useAIStore = defineStore('admin-ai', () => {
 
   const streamClient = useAiStream()
   let operation = 0
+  let listRevision = 0
   let nextLocalMessageId = -1
 
   async function loadConversations() {
+    const request = ++listRevision
     loadingList.value = true
     try {
       const listed = await listAdminAIConversations()
+      if (request !== listRevision) return
       conversations.value = listed
-      if (!current.value && listed[0]) await openConversation(listed[0].id)
+      if (!current.value && listed[0]) {
+        loadingList.value = false
+        await openConversation(listed[0].id)
+      }
     } catch (reason) {
-      error.value = errorMessage(reason, '会话列表加载失败')
+      if (request === listRevision) error.value = errorMessage(reason, '会话列表加载失败')
     } finally {
-      loadingList.value = false
+      if (request === listRevision) loadingList.value = false
     }
   }
 
   async function openConversation(id: number) {
+    invalidateListRequests()
     invalidateActiveStream()
     const request = ++operation
     loadingDetail.value = true
@@ -58,6 +65,7 @@ export const useAIStore = defineStore('admin-ai', () => {
   }
 
   async function createConversation() {
+    invalidateListRequests()
     error.value = null
     try {
       const created = await createAdminAIConversation()
@@ -74,6 +82,7 @@ export const useAIStore = defineStore('admin-ai', () => {
     const nextTitle = title.trim()
     if (!nextTitle) return null
 
+    invalidateListRequests()
     error.value = null
     try {
       const updated = await renameAdminAIConversation(id, nextTitle)
@@ -87,6 +96,7 @@ export const useAIStore = defineStore('admin-ai', () => {
   }
 
   async function deleteConversation(id: number) {
+    invalidateListRequests()
     const wasCurrent = current.value?.id === id
     if (wasCurrent) invalidateActiveStream()
 
@@ -105,6 +115,7 @@ export const useAIStore = defineStore('admin-ai', () => {
   }
 
   async function clearConversations() {
+    invalidateListRequests()
     invalidateActiveStream()
     error.value = null
     try {
@@ -194,9 +205,16 @@ export const useAIStore = defineStore('admin-ai', () => {
     streamClient.abort()
   }
 
+  function invalidateListRequests() {
+    listRevision += 1
+    loadingList.value = false
+  }
+
   async function refreshSummary(id: number) {
+    const request = ++listRevision
     try {
       const latest = await listAdminAIConversations()
+      if (request !== listRevision) return
       const activeId = current.value?.id
       conversations.value = latest
       if (activeId && activeId !== id && !latest.some((item) => item.id === activeId)) current.value = null

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -104,5 +106,10 @@ describe('AdminAIWorkspaceView', () => {
 
     await wrapper.get('[data-test="ai-mobile-delete-confirm-7"] .popconfirm-confirm').trigger('click')
     expect(store.deleteConversation).toHaveBeenCalledWith(7)
+  })
+  it('keeps conversation actions visible when keyboard focus enters a conversation item', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/styles/admin.css'), 'utf8')
+
+    expect(css).toContain('.ai-conversation-item:focus-within .ai-conversation-actions')
   })
 })

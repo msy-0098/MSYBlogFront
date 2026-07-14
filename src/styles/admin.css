@@ -924,6 +924,7 @@
 .ai-conversation-select span { margin-top: 0.32rem; color: var(--admin-text-secondary); font-size: 0.75rem; }
 .ai-conversation-actions { display: flex; opacity: 0; transition: opacity 160ms ease; }
 .ai-conversation-item:hover .ai-conversation-actions,
+.ai-conversation-item:focus-within .ai-conversation-actions,
 .ai-conversation-item.active .ai-conversation-actions { opacity: 1; }
 .ai-rename-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; width: 100%; gap: 0.45rem; padding: 0.3rem; }
 .ai-clear-button { align-self: flex-start; margin: 0.7rem 1rem 1rem; }

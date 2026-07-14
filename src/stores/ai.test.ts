@@ -135,6 +135,103 @@ describe('AI conversation store', () => {
     expect(store.conversations).toEqual([summary])
     expect(store.current).toMatchObject({ id: 3, title: '已恢复的会话' })
   })
+  it('does not let an older list request overwrite a newly created conversation', async () => {
+    const store = useAIStore()
+    const old = conversationSummary(1, '旧会话')
+    const created = conversationSummary(2, '新会话')
+    const pendingList = createDeferred<typeof old[]>()
+    store.conversations = [old]
+    store.current = { ...old, messages: [] }
+    vi.mocked(listAdminAIConversations).mockReturnValueOnce(pendingList.promise)
+    vi.mocked(createAdminAIConversation).mockResolvedValue(created)
+    vi.mocked(getAdminAIConversation).mockResolvedValue({ ...created, messages: [] })
+
+    const loading = store.loadConversations()
+    await Promise.resolve()
+    await store.createConversation()
+    pendingList.resolve([old])
+    await loading
+
+    expect(store.conversations).toEqual([created, old])
+  })
+
+  it('does not let an older list request roll back a renamed conversation', async () => {
+    const store = useAIStore()
+    const old = conversationSummary(1, '旧标题')
+    const renamed = { ...old, title: '新标题' }
+    const pendingList = createDeferred<typeof old[]>()
+    store.conversations = [old]
+    store.current = { ...old, messages: [] }
+    vi.mocked(listAdminAIConversations).mockReturnValueOnce(pendingList.promise)
+    vi.mocked(renameAdminAIConversation).mockResolvedValue(renamed)
+
+    const loading = store.loadConversations()
+    await Promise.resolve()
+    await store.renameConversation(old.id, renamed.title)
+    pendingList.resolve([old])
+    await loading
+
+    expect(store.conversations).toEqual([renamed])
+    expect(store.current?.title).toBe('新标题')
+  })
+
+  it('does not let an older list request resurrect a deleted conversation', async () => {
+    const store = useAIStore()
+    const old = conversationSummary(1, '待删除')
+    const pendingList = createDeferred<typeof old[]>()
+    store.conversations = [old]
+    store.current = { ...conversationSummary(2, '当前会话'), messages: [] }
+    vi.mocked(listAdminAIConversations).mockReturnValueOnce(pendingList.promise)
+    vi.mocked(deleteAdminAIConversation).mockResolvedValue({ deleted: true })
+
+    const loading = store.loadConversations()
+    await Promise.resolve()
+    await store.deleteConversation(old.id)
+    pendingList.resolve([old])
+    await loading
+
+    expect(store.conversations).toEqual([])
+  })
+
+  it('does not let an older list request revive conversations after clear', async () => {
+    const store = useAIStore()
+    const old = conversationSummary(1, '待清空')
+    const pendingList = createDeferred<typeof old[]>()
+    store.conversations = [old]
+    store.current = { ...old, messages: [] }
+    vi.mocked(listAdminAIConversations).mockReturnValueOnce(pendingList.promise)
+    vi.mocked(clearAdminAIConversations).mockResolvedValue({ deleted: true })
+    vi.mocked(getAdminAIConversation).mockResolvedValue({ ...old, messages: [] })
+
+    const loading = store.loadConversations()
+    await Promise.resolve()
+    await store.clearConversations()
+    pendingList.resolve([old])
+    await loading
+
+    expect(store.conversations).toEqual([])
+    expect(store.current).toBeNull()
+  })
+
+  it('invalidates an older list request when opening a different conversation', async () => {
+    const store = useAIStore()
+    const old = conversationSummary(1, '旧会话')
+    const selected = conversationSummary(2, '选中的会话')
+    const pendingList = createDeferred<typeof old[]>()
+    store.conversations = [selected]
+    store.current = { ...old, messages: [] }
+    vi.mocked(listAdminAIConversations).mockReturnValueOnce(pendingList.promise)
+    vi.mocked(getAdminAIConversation).mockResolvedValue({ ...selected, messages: [] })
+
+    const loading = store.loadConversations()
+    await Promise.resolve()
+    await store.openConversation(selected.id)
+    pendingList.resolve([old])
+    await loading
+
+    expect(store.conversations).toEqual([selected])
+    expect(store.current).toMatchObject({ id: selected.id })
+  })
 })
 
 function conversationDetail() {
@@ -145,4 +242,15 @@ function conversationDetail() {
     lastMessageAt: null,
     messages: []
   }
+}
+function conversationSummary(id: number, title: string) {
+  return { id, title, messageCount: 0, lastMessageAt: null }
+}
+
+function createDeferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((nextResolve) => {
+    resolve = nextResolve
+  })
+  return { promise, resolve }
 }
