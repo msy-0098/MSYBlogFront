@@ -193,6 +193,32 @@
 }
 
 
+.admin-topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-topbar-user > div:last-child {
+  display: grid;
+  gap: 0.15rem;
+  text-align: right;
+}
+
+.admin-topbar-user strong {
+  display: block;
+  color: var(--admin-text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.admin-topbar-user small {
+  display: block;
+  color: var(--admin-text-secondary);
+  font-size: 0.75rem;
+}
+
 .admin-avatar {
   display: grid;
   place-items: center;
@@ -484,6 +510,34 @@
   background: var(--admin-muted);
   color: var(--admin-text-secondary);
   font-size: 0.82rem;
+}
+
+.admin-detail-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin: 0;
+  padding: 1.25rem 0 0;
+  border-top: 1px solid var(--admin-border);
+}
+
+.admin-detail-list div {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.admin-detail-list dt {
+  color: var(--admin-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.admin-detail-list dd {
+  margin: 0;
+  color: var(--admin-text-primary);
+  font-size: 1rem;
+  font-weight: 500;
+  word-break: break-all;
 }
 
 .admin-comment-feed {
