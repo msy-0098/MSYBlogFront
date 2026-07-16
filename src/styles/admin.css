@@ -15,9 +15,12 @@
 .admin-sidebar {
   border-right: none;
   background: var(--admin-surface);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   display: flex;
   flex-direction: column;
   box-shadow: 1px 0 0 var(--admin-border);
+  z-index: 20;
 }
 
 .admin-brand {
@@ -97,12 +100,13 @@
   margin-bottom: 0.2rem;
   color: var(--admin-text-secondary);
   font-weight: 500;
-  transition: all 180ms ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-menu .el-menu-item:hover {
-  background: color-mix(in srgb, var(--admin-primary) 4%, transparent);
-  color: var(--admin-text-primary);
+  background: color-mix(in srgb, var(--admin-primary) 8%, transparent);
+  color: var(--admin-primary-hover);
+  transform: translateX(4px);
 }
 
 .admin-menu .el-menu-item.is-active {
@@ -164,7 +168,8 @@
   gap: 1rem;
   padding: 0 1.5rem;
   background: var(--admin-surface);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border-bottom: 1px solid var(--admin-border);
   position: sticky;
   top: 0;
@@ -221,14 +226,16 @@
 .admin-login-panel .section-kicker {
   margin: 0 0 0.55rem;
   color: var(--admin-primary);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 800;
-  letter-spacing: 0;
-  text-transform: none;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .admin-page-heading h1 {
-  font-size: 1.55rem;
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
@@ -340,11 +347,14 @@
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-sm);
   padding: 1rem;
-  background: var(--admin-surface);
+  background: var(--admin-surface-solid);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-metric-card:hover {
-  border-color: color-mix(in srgb, var(--metric-color) 45%, var(--admin-border));
+  border-color: color-mix(in srgb, var(--metric-color, var(--admin-primary)) 45%, var(--admin-border));
+  box-shadow: var(--admin-shadow-hover);
+  transform: translateY(-3px);
 }
 
 .admin-metric-bento {
@@ -399,7 +409,9 @@
 .metric-content strong {
   display: block;
   color: var(--admin-text-primary);
-  font-size: 1.55rem;
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.1;
   margin-bottom: 0.35rem;
 }
@@ -530,15 +542,17 @@
 
 .admin-panel {
   border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-sm);
-  background: var(--admin-surface);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface-solid);
   box-shadow: var(--admin-shadow-sm);
   overflow: hidden;
-  transition: border-color 180ms ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-table-panel:hover {
-  border-color: color-mix(in srgb, var(--admin-border) 60%, var(--admin-text-secondary));
+  border-color: color-mix(in srgb, var(--admin-primary) 40%, var(--admin-border));
+  box-shadow: var(--admin-shadow-hover);
+  transform: translateY(-2px);
 }
 
 .admin-table-title {
@@ -549,8 +563,10 @@
 
 .admin-table-title strong {
   color: var(--admin-text-primary);
-  font-weight: 500;
-  font-size: 1rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
   overflow-wrap: anywhere;
 }
 
