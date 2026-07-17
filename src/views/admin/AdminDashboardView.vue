@@ -162,19 +162,19 @@ function shortDate(value: string) {
 .admin-trend-chart {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(28px, 1fr);
+  grid-auto-columns: minmax(32px, 1fr);
   align-items: end;
-  gap: 0.4rem;
-  min-height: 180px;
-  padding: 0.5rem 0 0.25rem;
+  gap: 0.55rem;
+  min-height: 200px;
+  padding: 1rem 0.25rem 0.5rem;
 }
 
 .admin-trend-col {
   display: grid;
   grid-template-rows: 1fr auto auto;
   justify-items: center;
-  gap: 0.3rem;
-  height: 180px;
+  gap: 0.4rem;
+  height: 200px;
 }
 
 .admin-trend-bar {
@@ -194,9 +194,14 @@ function shortDate(value: string) {
 .admin-trend-summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem 1.25rem;
-  margin-top: 0.85rem;
+  gap: 0.85rem 1.5rem;
+  margin-top: 1.1rem;
+  padding-top: 0.35rem;
   color: var(--admin-text-secondary);
   font-size: 0.9rem;
+}
+
+.admin-trend-panel {
+  padding: 1.35rem 1.5rem 1.5rem;
 }
 </style>

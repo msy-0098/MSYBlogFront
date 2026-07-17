@@ -58,17 +58,17 @@
 
 .admin-menu-wrapper {
   flex: 1;
-  padding: 0.75rem 0.65rem;
+  padding: 1rem 0.85rem;
   overflow-y: auto;
 }
 
 .admin-nav-group + .admin-nav-group {
-  margin-top: 1.15rem;
+  margin-top: 1.45rem;
 }
 
 .admin-nav-group-title {
   margin: 0;
-  padding: 0.2rem 0.75rem 0.55rem;
+  padding: 0.25rem 0.85rem 0.7rem;
   color: var(--admin-text-secondary);
   font-size: 0.72rem;
   font-weight: 700;
@@ -95,9 +95,9 @@
 
 /* Material You style active menu item */
 .admin-menu .el-menu-item {
-  height: 40px;
+  height: 44px;
   border-radius: var(--admin-radius-sm);
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.3rem;
   color: var(--admin-text-secondary);
   font-weight: 500;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -166,7 +166,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0 1.5rem;
+  min-height: 64px;
+  padding: 0 1.75rem;
   background: var(--admin-surface);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -232,25 +233,26 @@
 }
 
 .admin-main {
-  padding: 1.25rem;
+  padding: 1.75rem 2rem 2.5rem;
 }
 
 .admin-page {
   display: grid;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .admin-page-heading {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  min-height: 52px;
+  gap: 1.25rem 1.5rem;
+  min-height: 64px;
+  margin-bottom: 0.25rem;
 }
 
 .admin-page-heading .section-kicker,
 .admin-login-panel .section-kicker {
-  margin: 0 0 0.55rem;
+  margin: 0 0 0.7rem;
   color: var(--admin-primary);
   font-size: 0.8rem;
   font-weight: 800;
@@ -259,17 +261,19 @@
 }
 
 .admin-page-heading h1 {
-  font-size: 1.65rem;
+  font-size: 1.75rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 1.2;
+  line-height: 1.25;
+  margin: 0;
 }
 
-.admin-page-actions {
+.admin-page-actions,
+.admin-heading-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
 
 .admin-link-button {
@@ -309,17 +313,17 @@
 
 .admin-dashboard-stack {
   display: grid;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .admin-brief-panel {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.5rem;
   border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-sm);
-  padding: 1rem 1.15rem;
+  border-radius: var(--admin-radius-md);
+  padding: 1.35rem 1.5rem;
   background: var(--admin-surface);
 }
 
@@ -330,22 +334,22 @@
 }
 
 .admin-brief-panel h2 {
-  margin-top: 0.2rem;
-  font-size: 1.28rem;
+  margin-top: 0.35rem;
+  font-size: 1.35rem;
 }
 
 .admin-brief-panel p {
   max-width: 640px;
-  margin: 0.35rem 0 0;
+  margin: 0.5rem 0 0;
   color: var(--admin-text-secondary);
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 .admin-brief-panel > strong {
   flex: 0 0 auto;
   border: 1px solid var(--admin-border);
   border-radius: 999px;
-  padding: 0.35rem 0.7rem;
+  padding: 0.45rem 0.9rem;
   background: var(--admin-muted);
   color: var(--admin-text-secondary);
   font-size: 0.85rem;
@@ -356,23 +360,23 @@
 .admin-dashboard-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 1.15rem;
 }
 
 .admin-dashboard-columns {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .admin-metric-card {
   display: flex;
   align-items: flex-start;
-  gap: 0.9rem;
+  gap: 1rem;
   min-width: 0;
   border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-sm);
-  padding: 1rem;
+  border-radius: var(--admin-radius-md);
+  padding: 1.25rem 1.35rem;
   background: var(--admin-surface-solid);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -453,14 +457,15 @@
 .admin-recent-comments {
   display: grid;
   align-content: start;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 1.15rem;
+  padding: 1.35rem 1.5rem;
 }
 
 .admin-analysis-heading {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.9rem;
+  margin-bottom: 0.15rem;
 }
 
 .admin-analysis-heading .el-icon {
@@ -542,14 +547,14 @@
 
 .admin-comment-feed {
   display: grid;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .admin-comment-feed article {
   display: grid;
-  gap: 0.25rem;
+  gap: 0.4rem;
   border-top: 1px solid var(--admin-border);
-  padding-top: 0.75rem;
+  padding-top: 1rem;
 }
 
 .admin-comment-feed strong {
@@ -603,6 +608,15 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.admin-panel > .admin-analysis-heading,
+.admin-panel > .admin-form-section-heading {
+  padding: 1.25rem 1.5rem 0;
+}
+
+.admin-panel .el-table {
+  --el-table-border-color: var(--admin-border);
+}
+
 .admin-table-panel:hover {
   border-color: color-mix(in srgb, var(--admin-primary) 40%, var(--admin-border));
   box-shadow: var(--admin-shadow-hover);
@@ -611,8 +625,9 @@
 
 .admin-table-title {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.35rem;
   min-width: 0;
+  padding: 1.15rem 1.35rem 0.85rem;
 }
 
 .admin-table-title strong {
@@ -643,10 +658,17 @@
   font-weight: 600;
   font-size: 0.82rem;
   letter-spacing: 0;
+  padding: 14px 0;
 }
 
 .admin-table-panel .el-table td.el-table__cell {
-  padding: 8px 0;
+  padding: 14px 0;
+}
+
+.admin-table-panel .el-table .cell {
+  padding-left: 16px;
+  padding-right: 16px;
+  line-height: 1.5;
 }
 
 .admin-table-panel .el-tag {
@@ -657,34 +679,34 @@
 .admin-inline-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.45rem;
 }
 
 .admin-pagination {
   display: flex;
   justify-content: flex-end;
   border-top: 1px solid var(--admin-border);
-  padding: 1rem;
+  padding: 1.1rem 1.35rem;
 }
 
 .admin-runtime-config {
   display: grid;
-  gap: 1rem;
-  margin-top: 0.5rem;
-  padding-top: 1.25rem;
+  gap: 1.15rem;
+  margin-top: 0.75rem;
+  padding-top: 1.5rem;
   border-top: 1px solid var(--admin-border);
 }
 
 .admin-runtime-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .admin-runtime-grid > div {
   display: grid;
-  gap: 0.3rem;
-  padding: 0.85rem 1rem;
+  gap: 0.4rem;
+  padding: 1rem 1.15rem;
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-sm);
   background: var(--admin-muted);
@@ -702,9 +724,9 @@
 
 .admin-form-section {
   display: grid;
-  gap: 1rem;
-  padding: 1.25rem;
-  margin-bottom: 1rem;
+  gap: 1.25rem;
+  padding: 1.5rem 1.65rem 1.75rem;
+  margin-bottom: 1.25rem;
 }
 
 .admin-form-section-heading {
@@ -712,7 +734,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.35rem;
 }
 
 .admin-form-section-heading span {
@@ -721,7 +743,7 @@
   font-weight: 800;
   text-transform: none;
   letter-spacing: 0;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
   display: block;
 }
 
@@ -734,8 +756,23 @@
 .admin-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.15rem 1.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.admin-form-section .el-form-item {
+  margin-bottom: 1.15rem;
+}
+
+.admin-form-section .el-form-item:last-child {
+  margin-bottom: 0.25rem;
+}
+
+.admin-form-hint {
+  margin: 0.15rem 0 0.5rem;
+  color: var(--admin-text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.6;
 }
 
 .admin-field select[multiple] {
@@ -756,12 +793,12 @@
 
 .post-editor {
   display: grid;
-  gap: 1.5rem;
+  gap: 1.75rem;
 }
 
 .admin-field {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.55rem;
 }
 
 .admin-field span {
@@ -778,7 +815,7 @@
   min-width: 0;
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-sm);
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1.05rem;
   background: var(--admin-surface);
   color: var(--admin-text-primary);
   font-size: 0.95rem;
@@ -840,7 +877,9 @@
 .admin-editor-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: 0.85rem;
+  margin-top: 0.5rem;
+  padding-top: 0.35rem;
 }
 
 .admin-native-button {
