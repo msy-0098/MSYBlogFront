@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import PostCard from './PostCard.vue'
 
 describe('PostCard', () => {
-  it('keeps the main article link and tag links navigable without nesting RouterLinks', () => {
+  it('uses a single article RouterLink so the whole card is clickable', () => {
     const wrapper = mount(PostCard, {
       props: {
         post: {
@@ -29,11 +29,10 @@ describe('PostCard', () => {
     })
 
     const links = wrapper.findAllComponents(RouterLinkStub)
-    const destinations = links.map((link) => link.props('to'))
-
-    expect(destinations).toContain('/posts/curated-post')
-    expect(destinations).toContain('/tags/vue')
-    expect(destinations).toContain('/tags/testing')
-    expect(wrapper.find('.post-card-shell__tags').findAllComponents(RouterLinkStub)).toHaveLength(2)
+    expect(links).toHaveLength(1)
+    expect(links[0].props('to')).toBe('/posts/curated-post')
+    expect(wrapper.text()).toContain('Vue')
+    expect(wrapper.text()).toContain('Testing')
+    expect(wrapper.find('.post-card-shell__link').exists()).toBe(true)
   })
 })

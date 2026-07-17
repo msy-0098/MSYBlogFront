@@ -1,74 +1,72 @@
 /**
  * Public-site theme bridge.
- * global.css still has many legacy hardcoded light colors; this file remaps
- * them through design tokens so dark mode stays readable.
+ * Loaded AFTER global.css so token-based colors override legacy hardcoded light values.
  */
 
 body {
-  background: var(--surface-page);
-  color: var(--text-strong);
+  background: var(--surface-page) !important;
+  color: var(--text-strong) !important;
 }
 
-.home-page {
-  background: var(--surface-page);
-}
-
-.home-hero {
-  background: var(--surface-page);
+.home-page,
+.home-hero,
+.section-band,
+.section-band-soft,
+.public-root-main {
+  background: var(--surface-page) !important;
 }
 
 .home-hero::after {
-  background: var(--hero-fade);
+  background: var(--hero-fade) !important;
 }
 
 .hero-content {
-  text-shadow: var(--hero-text-glow);
+  text-shadow: var(--hero-text-glow) !important;
 }
 
 .hero-brandline {
-  border-color: var(--border-subtle);
-  background: var(--surface-card);
-  color: var(--text-muted);
-  box-shadow: var(--shadow-card);
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-card) !important;
+  color: var(--text-muted) !important;
+  box-shadow: var(--shadow-card) !important;
 }
 
 .hero-brand-mark {
-  background: var(--accent);
-  color: var(--text-on-accent);
+  background: var(--accent) !important;
+  color: var(--text-on-accent) !important;
 }
 
 .home-page h1,
 .home-page h2,
 .public-root-main h1,
-.public-root-main h2 {
-  color: var(--text-strong);
+.public-root-main h2,
+h1,
+h2 {
+  color: var(--text-strong) !important;
 }
 
 .home-page h1 .title-light {
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
 }
 
 .home-page h1 .title-bold {
-  color: var(--text-strong);
+  color: var(--text-strong) !important;
 }
 
-.subtitle {
-  color: var(--text-body);
-}
-
+.subtitle,
 .typed-intro {
-  color: var(--text-body);
+  color: var(--text-body) !important;
 }
 
 .typed-intro span {
-  background: linear-gradient(135deg, var(--text-strong) 0%, var(--text-muted) 70%, var(--text-strong) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: linear-gradient(135deg, var(--text-strong) 0%, var(--text-muted) 70%, var(--text-strong) 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
 .typed-intro i {
-  background: var(--text-strong);
+  background: var(--text-strong) !important;
 }
 
 .description,
@@ -76,277 +74,273 @@ body {
 .project-description,
 .category-summary,
 .placeholder-view p:last-child,
-.about-strip p {
-  color: var(--text-muted);
+.about-strip p,
+.section-lead {
+  color: var(--text-muted) !important;
 }
 
 .description {
-  text-shadow: var(--hero-text-glow);
-}
-
-.section-band,
-.section-band-soft {
-  background: var(--surface-page);
+  text-shadow: var(--hero-text-glow) !important;
 }
 
 .google-flow-section::before {
-  border-color: var(--border-subtle);
-  background: var(--surface-card);
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-card) !important;
 }
 
-.section-lead {
-  color: var(--text-muted);
-}
-
-.bento-card {
-  background: var(--surface-card);
-  border-color: var(--border-subtle);
-}
-
-.bento-card:hover {
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--border-subtle));
-  box-shadow: var(--shadow-soft);
-}
-
+.bento-card,
 .post-card,
 .category-card,
-.project-card {
-  border-color: var(--border-subtle);
-  background: var(--surface-card);
+.project-card,
+.public-root-main .post-card,
+.public-root-main .taxonomy-card {
+  background: var(--surface-card) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-strong) !important;
+  box-shadow: var(--shadow-card) !important;
 }
 
+.bento-card:hover,
 .post-card:hover,
 .category-card:hover,
 .project-card:hover {
-  box-shadow: var(--shadow-card);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border-subtle)) !important;
+  box-shadow: var(--shadow-soft) !important;
 }
 
 .post-cover,
 .project-cover {
-  background: var(--surface-soft);
+  background: var(--surface-soft) !important;
 }
 
-.post-meta {
-  color: var(--text-muted);
+.post-meta,
+.public-root-main .post-meta {
+  color: var(--text-muted) !important;
 }
 
 .post-title,
 .project-title,
-.category-name {
-  color: var(--text-strong);
+.category-name,
+.public-root-main .taxonomy-card span {
+  color: var(--text-strong) !important;
 }
 
-.post-summary {
-  color: var(--text-muted);
+.public-root-main .taxonomy-card strong,
+.category-count {
+  color: var(--accent) !important;
 }
 
-.tag-row span {
-  border-color: var(--border-subtle);
-  background: var(--surface-soft);
-  color: var(--text-muted);
+.tag-row span,
+.tag-link,
+.tag-chip {
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-soft) !important;
+  color: var(--text-muted) !important;
 }
 
-.project-cover {
-  color: var(--text-strong);
+.project-cover,
+.blog-post-cover {
+  color: var(--text-strong) !important;
 }
 
 .about-strip {
-  border-top-color: var(--border-subtle);
+  border-top-color: var(--border-subtle) !important;
 }
 
 .about-strip p:last-child {
-  color: var(--text-muted);
-}
-
-.blog-post-cover {
-  color: var(--text-strong);
-}
-
-.tag-link {
-  border-color: var(--border-subtle);
-  background: var(--surface-soft);
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
 }
 
 .markdown-body {
-  color: var(--text-body);
+  color: var(--text-body) !important;
 }
 
 .markdown-body h1,
 .markdown-body h2,
 .markdown-body h3 {
-  color: var(--text-strong);
+  color: var(--text-strong) !important;
 }
 
 .markdown-body a {
-  color: var(--accent);
+  color: var(--accent) !important;
 }
 
 .markdown-body pre {
-  border-color: var(--border-subtle);
-  background: var(--surface-code);
-  color: var(--text-code);
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-code) !important;
+  color: var(--text-code) !important;
 }
 
 .markdown-body code {
-  background: var(--surface-code-inline);
-  color: var(--text-code-inline);
+  background: var(--surface-code-inline) !important;
+  color: var(--text-code-inline) !important;
 }
 
 .markdown-body pre code {
-  background: transparent;
-  color: inherit;
+  background: transparent !important;
+  color: inherit !important;
 }
 
 .markdown-body blockquote {
-  border-left-color: color-mix(in srgb, var(--accent) 55%, transparent);
-  color: var(--text-muted);
+  border-left-color: color-mix(in srgb, var(--accent) 55%, transparent) !important;
+  color: var(--text-muted) !important;
 }
 
 .adjacent-posts a {
-  border-color: var(--border-subtle);
-  background: var(--surface-card);
-  color: var(--text-strong);
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-card) !important;
+  color: var(--text-strong) !important;
 }
 
 .adjacent-posts span {
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
 }
 
 .comment-section {
-  border-top-color: var(--border-subtle);
+  border-top-color: var(--border-subtle) !important;
 }
 
 .comment-heading p:not(.section-kicker) {
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
 }
 
 .comment-auth-button {
-  border-color: var(--border-subtle);
-  background: var(--surface-card);
-  color: var(--accent);
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-card) !important;
+  color: var(--accent) !important;
 }
 
 .comment-composer {
-  border-color: var(--border-subtle);
-  background: var(--surface-soft);
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-soft) !important;
 }
 
 .comment-composer textarea {
-  border-color: var(--border-subtle);
-  background: var(--surface-input);
-  color: var(--text-strong);
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-input) !important;
+  color: var(--text-strong) !important;
 }
 
 .comment-composer textarea:disabled {
-  background: var(--surface-soft);
-  color: var(--text-muted);
+  background: var(--surface-soft) !important;
+  color: var(--text-muted) !important;
 }
 
 .comment-composer-actions span {
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
 }
 
 .comment-item {
-  border-top-color: var(--border-subtle);
+  border-top-color: var(--border-subtle) !important;
 }
 
 .comment-item div {
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
 }
 
 .comment-item strong {
-  color: var(--text-strong);
+  color: var(--text-strong) !important;
 }
 
 .comment-item p {
-  color: var(--text-body);
+  color: var(--text-body) !important;
 }
 
 .visitor-auth-panel {
-  background: var(--overlay-scrim);
+  background: var(--overlay-scrim) !important;
 }
 
 .visitor-auth-card {
-  background: var(--surface-card);
-  box-shadow: var(--shadow-soft);
-  color: var(--text-strong);
+  background: var(--surface-card) !important;
+  box-shadow: var(--shadow-soft) !important;
+  color: var(--text-strong) !important;
 }
 
 .visitor-auth-header h3 {
-  color: var(--text-strong);
+  color: var(--text-strong) !important;
 }
 
 .visitor-auth-header button,
 .visitor-switch {
-  color: var(--accent);
+  color: var(--accent) !important;
 }
 
 .visitor-field span {
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
 }
 
 .visitor-field input {
-  border-color: var(--border-subtle);
-  background: var(--surface-input);
-  color: var(--text-strong);
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-input) !important;
+  color: var(--text-strong) !important;
 }
 
 .visitor-code-row button {
-  border-color: var(--border-subtle);
-  background: var(--surface-card);
-  color: var(--accent);
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-card) !important;
+  color: var(--accent) !important;
 }
 
 .search-box input {
-  border-color: var(--border-subtle);
-  background: var(--surface-input);
-  color: var(--text-strong);
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-input) !important;
+  color: var(--text-strong) !important;
 }
 
 .archive-month {
-  border-left-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  border-left-color: color-mix(in srgb, var(--accent) 40%, transparent) !important;
 }
 
 .archive-month h3 {
-  color: var(--accent);
+  color: var(--accent) !important;
 }
 
 .archive-month a {
-  border-bottom-color: var(--border-subtle);
-  color: var(--text-strong);
+  border-bottom-color: var(--border-subtle) !important;
+  color: var(--text-strong) !important;
 }
 
 .archive-month time {
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
 }
 
 .state-line {
-  border-color: var(--border-subtle);
-  background: var(--surface-card);
-  color: var(--text-muted);
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-card) !important;
+  color: var(--text-muted) !important;
 }
 
 .error-line {
-  border-color: color-mix(in srgb, #ef4444 40%, var(--border-subtle));
-  color: #f87171;
+  border-color: color-mix(in srgb, #ef4444 40%, var(--border-subtle)) !important;
+  color: #f87171 !important;
 }
 
 html[data-theme='dark'] .error-line {
-  color: #fca5a5;
-  background: color-mix(in srgb, #7f1d1d 35%, var(--surface-card));
+  color: #fca5a5 !important;
+  background: color-mix(in srgb, #7f1d1d 35%, var(--surface-card)) !important;
 }
 
-/* Mobile nav control */
 .mobile-nav-toggle {
-  background: var(--surface-card);
-  border-color: var(--border-subtle);
+  background: var(--surface-card) !important;
+  border-color: var(--border-subtle) !important;
 }
 
-/* Soften particle dome in dark mode so text stays readable */
+.primary-button {
+  border-color: var(--accent) !important;
+  background: var(--accent) !important;
+  color: var(--text-on-accent) !important;
+}
+
+.secondary-button,
+.section-link {
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-card) !important;
+  color: var(--text-strong) !important;
+}
+
 html[data-theme='dark'] .particle-dome {
-  opacity: 0.55;
-  filter: saturate(0.9) brightness(0.85);
+  opacity: 0.5 !important;
+  filter: saturate(0.85) brightness(0.8) !important;
 }
 
 html[data-theme='dark'] .bento-card::before {
@@ -354,5 +348,21 @@ html[data-theme='dark'] .bento-card::before {
     800px circle at var(--mouse-x, 0) var(--mouse-y, 0),
     rgba(96, 165, 250, 0.12),
     transparent 40%
-  );
+  ) !important;
+}
+
+/* Keep article links clickable above decorative layers */
+.post-card-shell__link,
+.post-card a,
+.taxonomy-card {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto !important;
+}
+
+.post-cover::after,
+.post-card-shell__cover::after,
+.bento-card::before,
+.particle-dome {
+  pointer-events: none !important;
 }
