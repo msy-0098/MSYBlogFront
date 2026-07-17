@@ -104,6 +104,6 @@ describe('PostDetailView', () => {
     await wrapper.find('[data-test="send-visitor-code"]').trigger('click')
     await flushPromises()
 
-    expect(sendVisitorEmailCode).toHaveBeenCalledWith('new-reader@example.com')
+    expect(sendVisitorEmailCode).toHaveBeenCalledWith('new-reader@example.com', 'register')
   })
 })

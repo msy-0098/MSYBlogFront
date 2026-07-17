@@ -6,6 +6,7 @@ import {
   getPostComments,
   loginVisitor,
   registerVisitor,
+  resetVisitorPassword,
   sendVisitorEmailCode,
   type PostComment,
   type VisitorUser
@@ -21,7 +22,7 @@ const commentError = ref('')
 const commentContent = ref('')
 const commentSubmitting = ref(false)
 const authPanelOpen = ref(false)
-const authMode = ref<'login' | 'register'>('login')
+const authMode = ref<'login' | 'register' | 'reset'>('login')
 const authLoading = ref(false)
 const codeSending = ref(false)
 const authForm = ref({
@@ -34,6 +35,17 @@ const visitorToken = ref(localStorage.getItem('visitor_token') || '')
 const visitorUser = ref<VisitorUser | null>(readVisitorUser())
 
 const isVisitorLoggedIn = computed(() => Boolean(visitorToken.value && visitorUser.value))
+const authTitle = computed(() => {
+  if (authMode.value === 'register') return '邮箱验证码注册'
+  if (authMode.value === 'reset') return '重置密码'
+  return '邮箱登录'
+})
+const authSubmitLabel = computed(() => {
+  if (authLoading.value) return '处理中...'
+  if (authMode.value === 'register') return '注册并登录'
+  if (authMode.value === 'reset') return '确认重置'
+  return '登录'
+})
 
 watch(
   () => props.slug,
@@ -63,7 +75,7 @@ async function loadComments() {
   }
 }
 
-function openAuthPanel(mode: 'login' | 'register' = 'login') {
+function openAuthPanel(mode: 'login' | 'register' | 'reset' = 'login') {
   authMode.value = mode
   authPanelOpen.value = true
 }
@@ -82,7 +94,8 @@ async function sendCode() {
   commentError.value = ''
 
   try {
-    await sendVisitorEmailCode(authForm.value.email)
+    const purpose = authMode.value === 'reset' ? 'reset' : 'register'
+    await sendVisitorEmailCode(authForm.value.email, purpose)
     commentError.value = '验证码已发送，请查收邮箱哦'
   } catch (err) {
     commentError.value = err instanceof Error ? err.message : '验证码发送失败'
@@ -96,6 +109,17 @@ async function submitAuth() {
   commentError.value = ''
 
   try {
+    if (authMode.value === 'reset') {
+      await resetVisitorPassword({
+        email: authForm.value.email,
+        code: authForm.value.code,
+        newPassword: authForm.value.password
+      })
+      commentError.value = '密码已重置，请用新密码登录'
+      authMode.value = 'login'
+      return
+    }
+
     const result =
       authMode.value === 'register'
         ? await registerVisitor(authForm.value)
@@ -178,7 +202,7 @@ function formatCommentTime(value: string): string {
       <div>
         <p class="section-kicker">讨论</p>
         <h2>读者评论</h2>
-        <p>用邮箱登录后就能留下想法，评论会同步保存到 MySQL。</p>
+        <p>用邮箱登录后就能留下想法，评论会同步保存。</p>
       </div>
       <button
         v-if="!isVisitorLoggedIn"
@@ -194,7 +218,7 @@ function formatCommentTime(value: string): string {
       </button>
     </div>
 
-    <p v-if="commentError" class="state-line" :class="{ 'error-line': !commentError.includes('已发送') }">
+    <p v-if="commentError" class="state-line" :class="{ 'error-line': !commentError.includes('已发送') && !commentError.includes('已重置') }">
       {{ commentError }}
     </p>
 
@@ -230,7 +254,7 @@ function formatCommentTime(value: string): string {
         <div class="visitor-auth-header">
           <div>
             <p class="section-kicker">账号</p>
-            <h3>{{ authMode === 'login' ? '邮箱登录' : '邮箱验证码注册' }}</h3>
+            <h3>{{ authTitle }}</h3>
           </div>
           <button type="button" @click="closeAuthPanel">关闭</button>
         </div>
@@ -244,10 +268,14 @@ function formatCommentTime(value: string): string {
           <input v-model="authForm.nickname" autocomplete="nickname" />
         </label>
         <label class="visitor-field">
-          <span>密码</span>
-          <input v-model="authForm.password" autocomplete="current-password" type="password" />
+          <span>{{ authMode === 'reset' ? '新密码' : '密码' }}</span>
+          <input
+            v-model="authForm.password"
+            :autocomplete="authMode === 'login' ? 'current-password' : 'new-password'"
+            type="password"
+          />
         </label>
-        <label v-if="authMode === 'register'" class="visitor-field">
+        <label v-if="authMode === 'register' || authMode === 'reset'" class="visitor-field">
           <span>验证码</span>
           <div class="visitor-code-row">
             <input v-model="authForm.code" autocomplete="one-time-code" />
@@ -258,15 +286,34 @@ function formatCommentTime(value: string): string {
         </label>
 
         <button class="primary-button visitor-submit" type="button" :disabled="authLoading" @click="submitAuth">
-          {{ authLoading ? '处理中...' : authMode === 'login' ? '登录' : '注册并登录' }}
+          {{ authSubmitLabel }}
         </button>
         <button
+          v-if="authMode === 'login'"
           class="visitor-switch"
           data-test="switch-visitor-auth-mode"
           type="button"
-          @click="authMode = authMode === 'login' ? 'register' : 'login'"
+          @click="authMode = 'register'"
         >
-          {{ authMode === 'login' ? '没有账号？去注册' : '已有账号？去登录' }}
+          没有账号？去注册
+        </button>
+        <button
+          v-if="authMode === 'login'"
+          class="visitor-switch"
+          data-test="open-visitor-reset"
+          type="button"
+          @click="authMode = 'reset'"
+        >
+          忘记密码？
+        </button>
+        <button
+          v-if="authMode !== 'login'"
+          class="visitor-switch"
+          data-test="switch-visitor-auth-mode"
+          type="button"
+          @click="authMode = 'login'"
+        >
+          已有账号？去登录
         </button>
       </div>
     </div>

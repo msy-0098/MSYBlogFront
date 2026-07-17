@@ -46,7 +46,8 @@ const navGroups: AdminNavGroup[] = [
       { path: '/admin/posts', label: '文章', icon: Files },
       { path: '/admin/categories', label: '分类', icon: Collection },
       { path: '/admin/tags', label: '标签', icon: PriceTag },
-      { path: '/admin/projects', label: '项目', icon: FolderOpened }
+      { path: '/admin/projects', label: '项目', icon: FolderOpened },
+      { path: '/admin/links', label: '友链', icon: FolderOpened }
     ]
   },
   {

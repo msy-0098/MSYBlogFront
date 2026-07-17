@@ -15,6 +15,7 @@ import AdminSettingsView from '../views/admin/AdminSettingsView.vue'
 import AdminUsersView from '../views/admin/AdminUsersView.vue'
 import AdminSecurityView from '../views/admin/AdminSecurityView.vue'
 import AdminTaxonomyView from '../views/admin/AdminTaxonomyView.vue'
+import AdminLinksView from '../views/admin/AdminLinksView.vue'
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -73,6 +74,11 @@ export const routes: RouteRecordRaw[] = [
     path: '/projects',
     name: 'projects',
     component: () => import('../views/ProjectsView.vue')
+  },
+  {
+    path: '/links',
+    name: 'links',
+    component: () => import('../views/LinksView.vue')
   },
   {
     path: '/about',
@@ -162,6 +168,14 @@ export const routes: RouteRecordRaw[] = [
         path: 'projects',
         name: 'admin-projects',
         component: AdminProjectsView,
+        meta: {
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'links',
+        name: 'admin-links',
+        component: AdminLinksView,
         meta: {
           requiresAuth: true
         }

@@ -18,6 +18,7 @@ describe('routes', () => {
         '/archive',
         '/search',
         '/projects',
+        '/links',
         '/about',
         '/admin/login'
       ])
@@ -35,6 +36,7 @@ describe('routes', () => {
         '/archive',
         '/search',
         '/projects',
+        '/links',
         '/about'
       ].includes(route.path)
     )

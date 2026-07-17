@@ -15,6 +15,7 @@ export interface PostSummary {
   summary: string
   cover: string
   viewCount: number
+  likeCount?: number
   category: Taxonomy
   tags: Taxonomy[]
   publishedAt: string
@@ -52,6 +53,16 @@ export interface Project {
   techStack: string[]
   sort: number
   visible: boolean
+}
+
+export interface FriendLink {
+  id: number
+  name: string
+  url: string
+  description: string
+  logo: string
+  sort: number
+  visible?: boolean
 }
 
 export interface VisitorUser {
@@ -185,11 +196,26 @@ export async function getProjects(client: AxiosInstance = apiClient): Promise<Pr
   return result.list
 }
 
+export async function getFriendLinks(client: AxiosInstance = apiClient): Promise<FriendLink[]> {
+  const result = unwrap((await client.get<ApiEnvelope<ListResult<FriendLink>>>('/links')).data)
+  return result.list
+}
+
+export async function likePost(
+  slug: string,
+  client: AxiosInstance = apiClient
+): Promise<{ likeCount: number; liked: boolean }> {
+  return unwrap((await client.post<ApiEnvelope<{ likeCount: number; liked: boolean }>>(`/posts/${slug}/like`)).data)
+}
+
 export async function sendVisitorEmailCode(
   email: string,
+  purpose: 'register' | 'reset' = 'register',
   client: AxiosInstance = apiClient
 ): Promise<{ sent: boolean }> {
-  return unwrap((await client.post<ApiEnvelope<{ sent: boolean }>>('/auth/email-code', { email })).data)
+  return unwrap(
+    (await client.post<ApiEnvelope<{ sent: boolean }>>('/auth/email-code', { email, purpose })).data
+  )
 }
 
 export async function registerVisitor(
@@ -204,6 +230,13 @@ export async function loginVisitor(
   client: AxiosInstance = apiClient
 ): Promise<VisitorAuthResult> {
   return unwrap((await client.post<ApiEnvelope<VisitorAuthResult>>('/auth/login', payload)).data)
+}
+
+export async function resetVisitorPassword(
+  payload: { email: string; code: string; newPassword: string },
+  client: AxiosInstance = apiClient
+): Promise<{ updated: boolean }> {
+  return unwrap((await client.post<ApiEnvelope<{ updated: boolean }>>('/auth/reset-password', payload)).data)
 }
 
 export async function getPostComments(

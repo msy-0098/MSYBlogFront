@@ -135,7 +135,7 @@ describe('blog api', () => {
       }
     })
 
-    await expect(sendVisitorEmailCode('reader@example.com', client)).resolves.toEqual({ sent: true })
+    await expect(sendVisitorEmailCode('reader@example.com', 'register', client)).resolves.toEqual({ sent: true })
     await expect(
       registerVisitor(
         {

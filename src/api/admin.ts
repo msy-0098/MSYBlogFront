@@ -90,6 +90,18 @@ export interface AdminProject {
 
 export type AdminProjectPayload = Omit<AdminProject, 'id'>
 
+export interface AdminFriendLink {
+  id: number
+  name: string
+  url: string
+  description: string
+  logo: string
+  sort: number
+  visible: boolean
+}
+
+export type AdminFriendLinkPayload = Omit<AdminFriendLink, 'id'>
+
 export interface AdminSettings {
   siteTitle: string
   subtitle: string
@@ -402,6 +414,29 @@ export async function updateAdminProject(
 
 export async function deleteAdminProject(id: number, client: AxiosInstance = adminApiClient): Promise<{ deleted: boolean }> {
   return unwrap((await client.delete<ApiEnvelope<{ deleted: boolean }>>(`/admin/projects/${id}`)).data)
+}
+
+export async function getAdminLinks(client: AxiosInstance = adminApiClient): Promise<AdminFriendLink[]> {
+  return unwrap((await client.get<ApiEnvelope<AdminListResult<AdminFriendLink>>>('/admin/links')).data).list
+}
+
+export async function createAdminLink(
+  payload: AdminFriendLinkPayload,
+  client: AxiosInstance = adminApiClient
+): Promise<AdminFriendLink> {
+  return unwrap((await client.post<ApiEnvelope<AdminFriendLink>>('/admin/links', payload)).data)
+}
+
+export async function updateAdminLink(
+  id: number,
+  payload: AdminFriendLinkPayload,
+  client: AxiosInstance = adminApiClient
+): Promise<AdminFriendLink> {
+  return unwrap((await client.put<ApiEnvelope<AdminFriendLink>>(`/admin/links/${id}`, payload)).data)
+}
+
+export async function deleteAdminLink(id: number, client: AxiosInstance = adminApiClient): Promise<{ deleted: boolean }> {
+  return unwrap((await client.delete<ApiEnvelope<{ deleted: boolean }>>(`/admin/links/${id}`)).data)
 }
 
 export async function getAdminSettings(client: AxiosInstance = adminApiClient): Promise<AdminSettings> {
