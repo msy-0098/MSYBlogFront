@@ -232,6 +232,10 @@ export async function loginVisitor(
   return unwrap((await client.post<ApiEnvelope<VisitorAuthResult>>('/auth/login', payload)).data)
 }
 
+export async function logoutVisitor(client: AxiosInstance = apiClient): Promise<{ loggedOut: boolean }> {
+  return unwrap((await client.post<ApiEnvelope<{ loggedOut: boolean }>>('/auth/logout')).data)
+}
+
 export async function resetVisitorPassword(
   payload: { email: string; code: string; newPassword: string },
   client: AxiosInstance = apiClient
@@ -249,19 +253,22 @@ export async function getPostComments(
 export async function createPostComment(
   slug: string,
   content: string,
-  token: string,
+  token?: string,
   client: AxiosInstance = apiClient
 ): Promise<PostComment> {
+  const headers =
+    token && token !== 'cookie'
+      ? {
+          Authorization: `Bearer ${token}`
+        }
+      : undefined
+
   return unwrap(
     (
       await client.post<ApiEnvelope<PostComment>>(
         `/posts/${slug}/comments`,
         { content },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+        headers ? { headers } : undefined
       )
     ).data
   )

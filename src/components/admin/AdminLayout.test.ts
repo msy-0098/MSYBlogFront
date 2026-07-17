@@ -16,14 +16,15 @@ vi.mock('../../stores/auth', () => ({
 }))
 
 const authStore = {
-  token: '',
+  token: 'cookie',
+  sessionActive: true,
   user: {
     username: 'admin',
     nickname: 'Admin',
     email: 'admin@example.com'
   },
   loadProfile: vi.fn(),
-  logout: vi.fn()
+  logout: vi.fn().mockResolvedValue(undefined)
 }
 
 const route = reactive({

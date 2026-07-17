@@ -36,3 +36,30 @@
   --admin-shadow-sm: 0 4px 20px rgba(61, 53, 47, 0.04);
   --admin-shadow-hover: 0 12px 32px rgba(61, 53, 47, 0.08);
 }
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --surface-page: #0f1419;
+  --surface-elevated: #171d25;
+  --surface-soft: #1c2430;
+  --surface-glass: rgba(15, 20, 25, 0.88);
+  --text-strong: #eef2f7;
+  --text-body: #c2ccd8;
+  --text-muted: #8b97a8;
+  --border-subtle: rgba(238, 242, 247, 0.1);
+  --border-strong: rgba(238, 242, 247, 0.18);
+  --accent: #60a5fa;
+  --accent-soft: rgba(96, 165, 250, 0.16);
+  --shadow-soft: 0 18px 48px rgba(0, 0, 0, 0.35);
+  --admin-background: #10151c;
+  --admin-surface: rgba(23, 29, 37, 0.86);
+  --admin-surface-solid: #171d25;
+  --admin-muted: #1c2430;
+  --admin-text-primary: #e8eef6;
+  --admin-text-secondary: #9aa7b8;
+  --admin-border: rgba(232, 238, 246, 0.12);
+  --admin-primary: #f0a37a;
+  --admin-primary-hover: #f4b48f;
+  --admin-shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.25);
+  --admin-shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.35);
+}

@@ -21,6 +21,7 @@ export function createApiClient(config: CreateAxiosDefaults = {}): AxiosInstance
   return axios.create({
     baseURL: '/api',
     timeout: 10000,
+    withCredentials: true,
     ...config
   })
 }

@@ -184,6 +184,19 @@ export interface AdminAnalytics {
   recentBans: AdminIPBan[]
 }
 
+export interface AdminTrendPoint {
+  date: string
+  requests: number
+  uniqueIPs: number
+  comments: number
+  newVisitors: number
+}
+
+export interface AdminTrends {
+  days: number
+  points: AdminTrendPoint[]
+}
+
 export interface AdminVisitor {
   id: number
   username: string
@@ -201,6 +214,7 @@ export interface AdminAIMessage {
 export interface AdminDashboard {
   stats: AdminDashboardStats
   analytics?: AdminAnalytics
+  trends?: AdminTrends
   aiAnalysis?: AdminAIAnalysis
   recentComments: AdminComment[]
 }
@@ -237,13 +251,15 @@ export function createAdminApiClient(options: CreateAdminApiClientOptions = {}):
   const client = axios.create({
     baseURL: '/api',
     timeout: 10000,
+    withCredentials: true,
     ...axiosOptions
   })
 
   client.interceptors.request.use((config) => {
     const token = getToken?.()
 
-    if (token) {
+    // Prefer cookie session; still allow Bearer for tests / legacy clients.
+    if (token && token !== 'cookie') {
       config.headers.set('Authorization', `Bearer ${token}`)
     }
 
@@ -280,9 +296,14 @@ function notifyUnauthorized(onUnauthorized?: () => void) {
 }
 
 function clearStoredAdminSession() {
-  if (typeof localStorage === 'undefined') return
-  localStorage.removeItem('admin_token')
-  localStorage.removeItem('admin_user')
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.removeItem('admin_session')
+    sessionStorage.removeItem('admin_user')
+  }
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem('admin_token')
+    localStorage.removeItem('admin_user')
+  }
 }
 
 export function handleAdminUnauthorized() {
@@ -290,7 +311,7 @@ export function handleAdminUnauthorized() {
 }
 
 export const adminApiClient = createAdminApiClient({
-  getToken: () => localStorage.getItem('admin_token'),
+  // Cookie session is primary; leave getToken empty so no Bearer header is forced.
   onUnauthorized: clearStoredAdminSession
 })
 
@@ -299,6 +320,10 @@ export async function loginAdmin(
   client: AxiosInstance = adminApiClient
 ): Promise<AdminLoginResult> {
   return unwrap((await client.post<ApiEnvelope<AdminLoginResult>>('/admin/login', payload)).data)
+}
+
+export async function logoutAdmin(client: AxiosInstance = adminApiClient): Promise<{ loggedOut: boolean }> {
+  return unwrap((await client.post<ApiEnvelope<{ loggedOut: boolean }>>('/admin/logout')).data)
 }
 
 export async function getAdminProfile(client: AxiosInstance = adminApiClient): Promise<AdminUser> {

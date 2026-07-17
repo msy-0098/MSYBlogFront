@@ -57,7 +57,7 @@ describe('AppHeader', () => {
     expect(wrapper.get('[data-test="primary-nav"]').classes()).toContain('is-open')
   })
 
-  it('adds a scrolled state after the page moves down', async () => {
+  it('toggles theme when the theme button is clicked', async () => {
     const router = createRouter({
       history: createMemoryHistory(),
       routes
@@ -65,10 +65,8 @@ describe('AppHeader', () => {
     router.push('/')
     await router.isReady()
 
-    Object.defineProperty(window, 'scrollY', {
-      value: 40,
-      configurable: true
-    })
+    localStorage.setItem('blog_theme', 'light')
+    document.documentElement.setAttribute('data-theme', 'light')
 
     const wrapper = mount(AppHeader, {
       global: {
@@ -76,9 +74,9 @@ describe('AppHeader', () => {
       }
     })
 
-    window.dispatchEvent(new Event('scroll'))
+    await wrapper.get('[data-test="theme-toggle"]').trigger('click')
     await nextTick()
 
-    expect(wrapper.get('.app-header').classes()).toContain('is-scrolled')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
   })
 })

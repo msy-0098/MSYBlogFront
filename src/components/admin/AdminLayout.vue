@@ -101,8 +101,9 @@ function closeMobileNav() {
 }
 
 function logout() {
-  authStore.logout()
-  router.push('/admin/login')
+  void authStore.logout().then(() => {
+    router.push('/admin/login')
+  })
 }
 </script>
 

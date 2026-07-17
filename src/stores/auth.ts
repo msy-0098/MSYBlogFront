@@ -1,24 +1,27 @@
 import { defineStore } from 'pinia'
 
-import { getAdminProfile, loginAdmin, type AdminUser } from '../api/admin'
+import { getAdminProfile, loginAdmin, logoutAdmin, type AdminUser } from '../api/admin'
 
-const TOKEN_KEY = 'admin_token'
+const SESSION_KEY = 'admin_session'
 const USER_KEY = 'admin_user'
 
 interface AuthState {
-  token: string
+  /** Session marker only — JWT lives in httpOnly cookie. */
+  sessionActive: boolean
   user: AdminUser | null
   loading: boolean
 }
 
 export const useAuthStore = defineStore('admin-auth', {
   state: (): AuthState => ({
-    token: readToken(),
+    sessionActive: readSessionActive(),
     user: readUser(),
     loading: false
   }),
   getters: {
-    isAuthenticated: (state) => Boolean(state.token)
+    isAuthenticated: (state) => state.sessionActive,
+    /** Kept for compatibility with older call sites that still check token. */
+    token: (state) => (state.sessionActive ? 'cookie' : '')
   },
   actions: {
     async login(username: string, password: string) {
@@ -26,14 +29,14 @@ export const useAuthStore = defineStore('admin-auth', {
 
       try {
         const result = await loginAdmin({ username, password })
-        this.setSession(result.token, result.user)
+        this.setSession(result.user)
         return result.user
       } finally {
         this.loading = false
       }
     },
     async loadProfile() {
-      if (!this.token) {
+      if (!this.sessionActive) {
         return null
       }
 
@@ -42,36 +45,52 @@ export const useAuthStore = defineStore('admin-auth', {
       try {
         const user = await getAdminProfile()
         this.user = user
-        localStorage.setItem(USER_KEY, JSON.stringify(user))
+        this.sessionActive = true
+        sessionStorage.setItem(SESSION_KEY, '1')
+        sessionStorage.setItem(USER_KEY, JSON.stringify(user))
         return user
       } catch (error) {
-        this.logout()
+        this.logout(false)
         throw error
       } finally {
         this.loading = false
       }
     },
-    setSession(token: string, user: AdminUser) {
-      this.token = token
+    setSession(user: AdminUser) {
+      this.sessionActive = true
       this.user = user
-      localStorage.setItem(TOKEN_KEY, token)
-      localStorage.setItem(USER_KEY, JSON.stringify(user))
+      sessionStorage.setItem(SESSION_KEY, '1')
+      sessionStorage.setItem(USER_KEY, JSON.stringify(user))
+      // Migrate away from legacy JWT localStorage storage.
+      localStorage.removeItem('admin_token')
+      localStorage.removeItem('admin_user')
     },
-    logout() {
-      this.token = ''
+    async logout(callApi = true) {
+      if (callApi) {
+        try {
+          await logoutAdmin()
+        } catch {
+          // Still clear local session markers.
+        }
+      }
+      this.sessionActive = false
       this.user = null
-      localStorage.removeItem(TOKEN_KEY)
-      localStorage.removeItem(USER_KEY)
+      sessionStorage.removeItem(SESSION_KEY)
+      sessionStorage.removeItem(USER_KEY)
+      localStorage.removeItem('admin_token')
+      localStorage.removeItem('admin_user')
     }
   }
 })
 
-function readToken(): string {
-  return localStorage.getItem(TOKEN_KEY) || ''
+function readSessionActive(): boolean {
+  if (typeof sessionStorage === 'undefined') return false
+  return sessionStorage.getItem(SESSION_KEY) === '1'
 }
 
 function readUser(): AdminUser | null {
-  const raw = localStorage.getItem(USER_KEY)
+  if (typeof sessionStorage === 'undefined') return null
+  const raw = sessionStorage.getItem(USER_KEY)
 
   if (!raw) {
     return null
@@ -80,7 +99,7 @@ function readUser(): AdminUser | null {
   try {
     return JSON.parse(raw) as AdminUser
   } catch {
-    localStorage.removeItem(USER_KEY)
+    sessionStorage.removeItem(USER_KEY)
     return null
   }
 }

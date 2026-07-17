@@ -4,8 +4,8 @@
 @import './public-content.css';
 
 :root {
-  color: #202124;
-  background: #F8F9FA;
+  color: var(--text-strong);
+  background: var(--surface-page);
   font-family:
     "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Microsoft YaHei",
     sans-serif;
@@ -68,7 +68,7 @@ img {
 
 .home-page {
   overflow: hidden;
-  background: #ffffff;
+  background: var(--surface-elevated);
 }
 
 .home-hero {

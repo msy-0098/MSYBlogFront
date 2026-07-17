@@ -5,6 +5,7 @@ import {
   createPostComment,
   getPostComments,
   loginVisitor,
+  logoutVisitor as requestVisitorLogout,
   registerVisitor,
   resetVisitorPassword,
   sendVisitorEmailCode,
@@ -31,10 +32,10 @@ const authForm = ref({
   password: '',
   code: ''
 })
-const visitorToken = ref(localStorage.getItem('visitor_token') || '')
+const visitorSession = ref(sessionStorage.getItem('visitor_session') === '1')
 const visitorUser = ref<VisitorUser | null>(readVisitorUser())
 
-const isVisitorLoggedIn = computed(() => Boolean(visitorToken.value && visitorUser.value))
+const isVisitorLoggedIn = computed(() => Boolean(visitorSession.value && visitorUser.value))
 const authTitle = computed(() => {
   if (authMode.value === 'register') return '邮箱验证码注册'
   if (authMode.value === 'reset') return '重置密码'
@@ -125,7 +126,7 @@ async function submitAuth() {
         ? await registerVisitor(authForm.value)
         : await loginVisitor({ email: authForm.value.email, password: authForm.value.password })
 
-    setVisitorSession(result.token, result.user)
+    setVisitorSession(result.user)
     closeAuthPanel()
   } catch (err) {
     commentError.value = err instanceof Error ? err.message : '登录注册失败'
@@ -149,7 +150,8 @@ async function submitComment() {
   commentError.value = ''
 
   try {
-    await createPostComment(props.slug, commentContent.value.trim(), visitorToken.value)
+    // Cookie session carries auth; Bearer kept only as optional fallback in API client tests.
+    await createPostComment(props.slug, commentContent.value.trim())
     commentContent.value = ''
     await loadComments()
   } catch (err) {
@@ -159,22 +161,31 @@ async function submitComment() {
   }
 }
 
-function logoutVisitor() {
-  visitorToken.value = ''
+async function logoutVisitor() {
+  try {
+    await requestVisitorLogout()
+  } catch {
+    // ignore
+  }
+  visitorSession.value = false
   visitorUser.value = null
+  sessionStorage.removeItem('visitor_session')
+  sessionStorage.removeItem('visitor_user')
   localStorage.removeItem('visitor_token')
   localStorage.removeItem('visitor_user')
 }
 
-function setVisitorSession(token: string, user: VisitorUser) {
-  visitorToken.value = token
+function setVisitorSession(user: VisitorUser) {
+  visitorSession.value = true
   visitorUser.value = user
-  localStorage.setItem('visitor_token', token)
-  localStorage.setItem('visitor_user', JSON.stringify(user))
+  sessionStorage.setItem('visitor_session', '1')
+  sessionStorage.setItem('visitor_user', JSON.stringify(user))
+  localStorage.removeItem('visitor_token')
+  localStorage.removeItem('visitor_user')
 }
 
 function readVisitorUser(): VisitorUser | null {
-  const raw = localStorage.getItem('visitor_user')
+  const raw = sessionStorage.getItem('visitor_user') || localStorage.getItem('visitor_user')
   if (!raw) {
     return null
   }
@@ -182,6 +193,7 @@ function readVisitorUser(): VisitorUser | null {
   try {
     return JSON.parse(raw) as VisitorUser
   } catch {
+    sessionStorage.removeItem('visitor_user')
     localStorage.removeItem('visitor_user')
     return null
   }
