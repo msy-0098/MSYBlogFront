@@ -50,3 +50,11 @@ describe('routes', () => {
     expect(routes.find((route) => route.path === '/:pathMatch(.*)*')?.name).toBe('not-found')
   })
 })
+
+  it('lazy-loads admin shell so public entry stays free of admin views', () => {
+    const adminLogin = routes.find((route) => route.path === '/admin/login')
+    const adminRoot = routes.find((route) => route.path === '/admin')
+
+    expect(typeof adminLogin?.component).toBe('function')
+    expect(typeof adminRoot?.component).toBe('function')
+  })

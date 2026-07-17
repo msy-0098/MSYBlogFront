@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 'vue'
 
-import HeroParticleDome from './HeroParticleDome.vue'
+// Defer particle worker bundle until after home shell mounts.
+const HeroParticleDome = defineAsyncComponent(() => import('./HeroParticleDome.vue'))
 
 defineProps<{
   owner: string

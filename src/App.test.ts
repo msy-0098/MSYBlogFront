@@ -89,7 +89,7 @@ describe('App scroll motion', () => {
     expect(globalCss).not.toMatch(/^\s*\.secondary-button\s*,/m)
     expect(globalCss).not.toMatch(/^\s*\.section-link\s*\{/m)
     expect(globalCss).not.toMatch(/\.section-heading\s+\.section-kicker/m)
-    expect(globalCss).toContain("@import './admin.css';")
+    expect(globalCss).not.toContain("@import './admin.css';")
     expect(globalCss).not.toMatch(/\.admin-page-heading\s+\.section-kicker/m)
     expect(globalCss).not.toMatch(/\.admin-login-panel\s+\.section-kicker/m)
     expect(adminCss).toMatch(/\.admin-page-heading\s+\.section-kicker/m)
@@ -99,6 +99,15 @@ describe('App scroll motion', () => {
     expect(publicContentCss).not.toMatch(/^\s*#app\s*\{/m)
     expect(publicContentCss).not.toMatch(/^\s*main\s*\{/m)
     expect(publicContentCss).not.toMatch(/^\s*img\s*\{/m)
+  })
+
+  it('loads admin css only through admin runtime entry', () => {
+    const adminRuntime = readFileSync(resolve(process.cwd(), 'src/plugins/adminRuntime.ts'), 'utf8')
+    const mainTs = readFileSync(resolve(process.cwd(), 'src/main.ts'), 'utf8')
+
+    expect(adminRuntime).toContain("import('../styles/admin.css')")
+    expect(mainTs).toContain('ensureAdminRuntime')
+    expect(mainTs).not.toContain("from 'element-plus'")
   })
 
   it('keeps Element Plus overrides inside admin surfaces', () => {

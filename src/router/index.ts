@@ -2,20 +2,7 @@ import type { RouteRecordRaw, Router } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
 
 import { ADMIN_UNAUTHORIZED_EVENT } from '../api/admin'
-import AdminLayout from '../components/admin/AdminLayout.vue'
 import { useAuthStore } from '../stores/auth'
-import AdminDashboardView from '../views/admin/AdminDashboardView.vue'
-import AdminAIWorkspaceView from '../views/admin/AdminAIWorkspaceView.vue'
-import AdminLoginView from '../views/admin/AdminLoginView.vue'
-import AdminCommentsView from '../views/admin/AdminCommentsView.vue'
-import AdminPostEditView from '../views/admin/AdminPostEditView.vue'
-import AdminPostsView from '../views/admin/AdminPostsView.vue'
-import AdminProjectsView from '../views/admin/AdminProjectsView.vue'
-import AdminSettingsView from '../views/admin/AdminSettingsView.vue'
-import AdminUsersView from '../views/admin/AdminUsersView.vue'
-import AdminSecurityView from '../views/admin/AdminSecurityView.vue'
-import AdminTaxonomyView from '../views/admin/AdminTaxonomyView.vue'
-import AdminLinksView from '../views/admin/AdminLinksView.vue'
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -93,12 +80,12 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/admin/login',
     name: 'admin-login',
-    component: AdminLoginView
+    component: () => import('../views/admin/AdminLoginView.vue')
   },
   {
     path: '/admin',
     name: 'admin',
-    component: AdminLayout,
+    component: () => import('../components/admin/AdminLayout.vue'),
     meta: {
       requiresAuth: true
     },
@@ -106,7 +93,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '',
         name: 'admin-dashboard',
-        component: AdminDashboardView,
+        component: () => import('../views/admin/AdminDashboardView.vue'),
         meta: {
           requiresAuth: true
         }
@@ -114,14 +101,15 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'ai',
         name: 'admin-ai',
-        component: AdminAIWorkspaceView,
+        component: () => import('../views/admin/AdminAIWorkspaceView.vue'),
         meta: {
           requiresAuth: true
         }
-      },      {
+      },
+      {
         path: 'posts',
         name: 'admin-posts',
-        component: AdminPostsView,
+        component: () => import('../views/admin/AdminPostsView.vue'),
         meta: {
           requiresAuth: true
         }
@@ -129,7 +117,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'posts/create',
         name: 'admin-post-create',
-        component: AdminPostEditView,
+        component: () => import('../views/admin/AdminPostEditView.vue'),
         meta: {
           requiresAuth: true
         }
@@ -137,7 +125,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'posts/:id/edit',
         name: 'admin-post-edit',
-        component: AdminPostEditView,
+        component: () => import('../views/admin/AdminPostEditView.vue'),
         meta: {
           requiresAuth: true
         }
@@ -145,7 +133,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'categories',
         name: 'admin-categories',
-        component: AdminTaxonomyView,
+        component: () => import('../views/admin/AdminTaxonomyView.vue'),
         meta: {
           requiresAuth: true
         },
@@ -156,7 +144,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'tags',
         name: 'admin-tags',
-        component: AdminTaxonomyView,
+        component: () => import('../views/admin/AdminTaxonomyView.vue'),
         meta: {
           requiresAuth: true
         },
@@ -167,7 +155,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'projects',
         name: 'admin-projects',
-        component: AdminProjectsView,
+        component: () => import('../views/admin/AdminProjectsView.vue'),
         meta: {
           requiresAuth: true
         }
@@ -175,7 +163,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'links',
         name: 'admin-links',
-        component: AdminLinksView,
+        component: () => import('../views/admin/AdminLinksView.vue'),
         meta: {
           requiresAuth: true
         }
@@ -183,7 +171,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'comments',
         name: 'admin-comments',
-        component: AdminCommentsView,
+        component: () => import('../views/admin/AdminCommentsView.vue'),
         meta: {
           requiresAuth: true
         }
@@ -191,19 +179,19 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'users',
         name: 'admin-users',
-        component: AdminUsersView,
+        component: () => import('../views/admin/AdminUsersView.vue'),
         meta: { requiresAuth: true }
       },
       {
         path: 'security',
         name: 'admin-security',
-        component: AdminSecurityView,
+        component: () => import('../views/admin/AdminSecurityView.vue'),
         meta: { requiresAuth: true }
       },
       {
         path: 'settings',
         name: 'admin-settings',
-        component: AdminSettingsView,
+        component: () => import('../views/admin/AdminSettingsView.vue'),
         meta: {
           requiresAuth: true
         }

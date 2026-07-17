@@ -3,7 +3,6 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { ADMIN_UNAUTHORIZED_EVENT } from '../api/admin'
 import AdminDashboardView from '../views/admin/AdminDashboardView.vue'
-import AdminLayout from '../components/admin/AdminLayout.vue'
 import AdminLoginView from '../views/admin/AdminLoginView.vue'
 import { installAdminUnauthorizedRedirect, routes } from './index'
 
@@ -27,11 +26,12 @@ describe('admin routes', () => {
       ])
     )
 
-    expect(findRoute(flattened, '/admin')?.record.component).toBe(AdminLayout)
-    expect(findRoute(flattened, '/admin/login')?.record.component).toBe(AdminLoginView)
+    // Admin shell is code-split; components are lazy import functions, not eager modules.
+    expect(typeof findRoute(flattened, '/admin')?.record.component).toBe('function')
+    expect(typeof findRoute(flattened, '/admin/login')?.record.component).toBe('function')
     expect(
       findRoute(flattened, '/admin')?.record.children?.some(
-        (child: { path: string; component: unknown }) => child.path === '' && child.component === AdminDashboardView
+        (child: { path: string; component: unknown }) => child.path === '' && typeof child.component === 'function'
       )
     ).toBe(true)
   })

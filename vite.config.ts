@@ -15,6 +15,36 @@ export default defineConfig({
       }
     }
   },
+  build: {
+    // Keep public entry lean; heavy admin / markdown code stays in separate chunks.
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) {
+            return
+          }
+          if (id.includes('element-plus') || id.includes('@element-plus')) {
+            return 'element-plus'
+          }
+          if (id.includes('markdown-it') || id.includes('highlight.js')) {
+            return 'markdown'
+          }
+          if (id.includes('axios')) {
+            return 'axios'
+          }
+          if (
+            id.includes('/vue/') ||
+            id.includes('\\vue\\') ||
+            id.includes('vue-router') ||
+            id.includes('pinia')
+          ) {
+            return 'vue-vendor'
+          }
+        }
+      }
+    }
+  },
   test: {
     environment: 'jsdom',
     exclude: [...configDefaults.exclude, '**/.worktrees/**']
