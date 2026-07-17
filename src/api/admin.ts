@@ -298,6 +298,7 @@ function notifyUnauthorized(onUnauthorized?: () => void) {
 function clearStoredAdminSession() {
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.removeItem('admin_session')
+    sessionStorage.removeItem('admin_token')
     sessionStorage.removeItem('admin_user')
   }
   if (typeof localStorage !== 'undefined') {
@@ -311,7 +312,11 @@ export function handleAdminUnauthorized() {
 }
 
 export const adminApiClient = createAdminApiClient({
-  // Cookie session is primary; leave getToken empty so no Bearer header is forced.
+  // Cookie session + Bearer fallback (token from sessionStorage after login).
+  getToken: () => {
+    if (typeof sessionStorage === 'undefined') return null
+    return sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token')
+  },
   onUnauthorized: clearStoredAdminSession
 })
 

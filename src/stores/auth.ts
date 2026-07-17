@@ -3,10 +3,12 @@ import { defineStore } from 'pinia'
 import { getAdminProfile, loginAdmin, logoutAdmin, type AdminUser } from '../api/admin'
 
 const SESSION_KEY = 'admin_session'
+const TOKEN_KEY = 'admin_token'
 const USER_KEY = 'admin_user'
 
 interface AuthState {
-  /** Session marker only — JWT lives in httpOnly cookie. */
+  /** JWT also mirrored in sessionStorage for Bearer fallback when cookies fail. */
+  token: string
   sessionActive: boolean
   user: AdminUser | null
   loading: boolean
@@ -14,14 +16,13 @@ interface AuthState {
 
 export const useAuthStore = defineStore('admin-auth', {
   state: (): AuthState => ({
-    sessionActive: readSessionActive(),
+    token: readToken(),
+    sessionActive: readSessionActive() || Boolean(readToken()),
     user: readUser(),
     loading: false
   }),
   getters: {
-    isAuthenticated: (state) => state.sessionActive,
-    /** Kept for compatibility with older call sites that still check token. */
-    token: (state) => (state.sessionActive ? 'cookie' : '')
+    isAuthenticated: (state) => state.sessionActive || Boolean(state.token)
   },
   actions: {
     async login(username: string, password: string) {
@@ -29,14 +30,14 @@ export const useAuthStore = defineStore('admin-auth', {
 
       try {
         const result = await loginAdmin({ username, password })
-        this.setSession(result.user)
+        this.setSession(result.token, result.user)
         return result.user
       } finally {
         this.loading = false
       }
     },
     async loadProfile() {
-      if (!this.sessionActive) {
+      if (!this.isAuthenticated) {
         return null
       }
 
@@ -56,12 +57,14 @@ export const useAuthStore = defineStore('admin-auth', {
         this.loading = false
       }
     },
-    setSession(user: AdminUser) {
+    setSession(token: string, user: AdminUser) {
+      this.token = token
       this.sessionActive = true
       this.user = user
       sessionStorage.setItem(SESSION_KEY, '1')
+      sessionStorage.setItem(TOKEN_KEY, token)
       sessionStorage.setItem(USER_KEY, JSON.stringify(user))
-      // Migrate away from legacy JWT localStorage storage.
+      // Prefer sessionStorage over long-lived localStorage for tokens.
       localStorage.removeItem('admin_token')
       localStorage.removeItem('admin_user')
     },
@@ -73,9 +76,11 @@ export const useAuthStore = defineStore('admin-auth', {
           // Still clear local session markers.
         }
       }
+      this.token = ''
       this.sessionActive = false
       this.user = null
       sessionStorage.removeItem(SESSION_KEY)
+      sessionStorage.removeItem(TOKEN_KEY)
       sessionStorage.removeItem(USER_KEY)
       localStorage.removeItem('admin_token')
       localStorage.removeItem('admin_user')
@@ -88,9 +93,14 @@ function readSessionActive(): boolean {
   return sessionStorage.getItem(SESSION_KEY) === '1'
 }
 
+function readToken(): string {
+  if (typeof sessionStorage === 'undefined') return ''
+  return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || ''
+}
+
 function readUser(): AdminUser | null {
   if (typeof sessionStorage === 'undefined') return null
-  const raw = sessionStorage.getItem(USER_KEY)
+  const raw = sessionStorage.getItem(USER_KEY) || localStorage.getItem(USER_KEY)
 
   if (!raw) {
     return null
@@ -100,6 +110,7 @@ function readUser(): AdminUser | null {
     return JSON.parse(raw) as AdminUser
   } catch {
     sessionStorage.removeItem(USER_KEY)
+    localStorage.removeItem(USER_KEY)
     return null
   }
 }
