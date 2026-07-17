@@ -7,6 +7,7 @@ import MarkdownRenderer from '../components/blog/MarkdownRenderer.vue'
 import PostComments from '../components/blog/PostComments.vue'
 import PostTableOfContents from '../components/blog/PostTableOfContents.vue'
 import { extractMarkdownHeadings } from '../utils/markdownHeadings'
+import { setDefaultPageMeta, setPageMeta } from '../utils/pageMeta'
 
 const route = useRoute()
 const post = ref<PostDetail | null>(null)
@@ -22,8 +23,14 @@ async function loadPost() {
 
   try {
     post.value = await getPostDetail(slug.value)
+    setPageMeta({
+      title: `${post.value.title} · 马森雨的技术博客`,
+      description: post.value.summary || post.value.title
+    })
   } catch (err) {
+    post.value = null
     error.value = err instanceof Error ? err.message : '文章加载失败'
+    setDefaultPageMeta()
   } finally {
     loading.value = false
   }

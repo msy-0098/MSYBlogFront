@@ -293,6 +293,18 @@ export async function getAdminProfile(client: AxiosInstance = adminApiClient): P
   return unwrap((await client.get<ApiEnvelope<AdminUser>>('/admin/profile')).data)
 }
 
+export interface AdminChangePasswordPayload {
+  currentPassword: string
+  newPassword: string
+}
+
+export async function changeAdminPassword(
+  payload: AdminChangePasswordPayload,
+  client: AxiosInstance = adminApiClient
+): Promise<{ updated: boolean }> {
+  return unwrap((await client.put<ApiEnvelope<{ updated: boolean }>>('/admin/password', payload)).data)
+}
+
 export async function getAdminPosts(
   params: { page?: number; pageSize?: number } = {},
   client: AxiosInstance = adminApiClient

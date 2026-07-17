@@ -7,7 +7,13 @@ const currentYear = new Date().getFullYear()
     <div class="footer-inner">
       <p>© {{ currentYear }} 马森雨</p>
       <p>写作、项目与持续成长的公开记录</p>
-      <p>Powered by Vue + Go</p>
+      <p class="footer-links">
+        <a href="/api/rss.xml">RSS</a>
+        <span aria-hidden="true">·</span>
+        <a href="/api/sitemap.xml">Sitemap</a>
+        <span aria-hidden="true">·</span>
+        <span>Powered by Vue + Go</span>
+      </p>
     </div>
   </footer>
 </template>

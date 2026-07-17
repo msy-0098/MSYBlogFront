@@ -1,15 +1,17 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import ElementPlus from 'element-plus'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import AdminSettingsView from './AdminSettingsView.vue'
 
 const getAdminSettings = vi.fn()
 const updateAdminSettings = vi.fn()
+const changeAdminPassword = vi.fn()
 
 vi.mock('../../api/admin', () => ({
   getAdminSettings: () => getAdminSettings(),
-  updateAdminSettings: (payload: unknown) => updateAdminSettings(payload)
+  updateAdminSettings: (payload: unknown) => updateAdminSettings(payload),
+  changeAdminPassword: (payload: unknown) => changeAdminPassword(payload)
 }))
 
 vi.mock('element-plus', async () => {
@@ -25,6 +27,12 @@ vi.mock('element-plus', async () => {
 })
 
 describe('AdminSettingsView', () => {
+  beforeEach(() => {
+    getAdminSettings.mockReset()
+    updateAdminSettings.mockReset()
+    changeAdminPassword.mockReset()
+  })
+
   it('edits and saves navigation items', async () => {
     getAdminSettings.mockResolvedValue({
       siteTitle: 'Blog',
@@ -88,5 +96,66 @@ describe('AdminSettingsView', () => {
     expect(runtime.text()).toContain('deepseek-chat')
     expect(runtime.text()).toContain('https://api.deepseek.com')
     expect(runtime.text()).toContain('API Key')
+  })
+
+  it('submits password change after confirmation matches', async () => {
+    getAdminSettings.mockResolvedValue({
+      siteTitle: 'Blog',
+      subtitle: 'Notes',
+      owner: 'Admin',
+      domain: 'example.com',
+      description: 'Personal site',
+      github: '',
+      gitee: '',
+      email: '',
+      icp: '',
+      navItems: 'Home,Posts'
+    })
+    changeAdminPassword.mockResolvedValue({ updated: true })
+
+    const wrapper = mount(AdminSettingsView, {
+      global: {
+        plugins: [ElementPlus]
+      }
+    })
+    await flushPromises()
+
+    await wrapper.find('[data-test="settings-current-password"] input').setValue('old-password')
+    await wrapper.find('[data-test="settings-new-password"] input').setValue('new-password')
+    await wrapper.find('[data-test="settings-confirm-password"] input').setValue('new-password')
+    await wrapper.find('[data-test="settings-password-save"]').trigger('click')
+    await flushPromises()
+
+    expect(changeAdminPassword).toHaveBeenCalledWith({
+      currentPassword: 'old-password',
+      newPassword: 'new-password'
+    })
+  })
+
+  it('shows discovery links for rss sitemap and robots', async () => {
+    getAdminSettings.mockResolvedValue({
+      siteTitle: 'Blog',
+      subtitle: 'Notes',
+      owner: 'Admin',
+      domain: 'example.com',
+      description: 'Personal site',
+      github: '',
+      gitee: '',
+      email: '',
+      icp: '',
+      navItems: 'Home,Posts'
+    })
+
+    const wrapper = mount(AdminSettingsView, {
+      global: {
+        plugins: [ElementPlus]
+      }
+    })
+    await flushPromises()
+
+    const discovery = wrapper.find('[data-test="admin-discovery-links"]')
+    expect(discovery.text()).toContain('/api/rss.xml')
+    expect(discovery.text()).toContain('/api/sitemap.xml')
+    expect(discovery.text()).toContain('/robots.txt')
   })
 })

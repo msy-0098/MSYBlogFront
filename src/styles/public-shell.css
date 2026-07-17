@@ -108,6 +108,21 @@
   font-size: 0.92rem;
 }
 
+.footer-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.footer-links a {
+  color: var(--text-strong);
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 720px) {
   .app-header {
     align-items: center;
