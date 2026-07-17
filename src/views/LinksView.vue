@@ -62,9 +62,9 @@ onMounted(async () => {
   display: grid;
   gap: 0.55rem;
   padding: 1.1rem 1.15rem;
-  border: 1px solid var(--border-subtle, rgba(15, 23, 42, 0.08));
+  border: 1px solid var(--border-subtle);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--surface-card);
   color: inherit;
   text-decoration: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -72,7 +72,7 @@ onMounted(async () => {
 
 .friend-link-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-soft);
 }
 
 .friend-link-logo {
@@ -82,8 +82,8 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  background: rgba(37, 99, 235, 0.08);
-  color: #2563eb;
+  background: var(--accent-soft);
+  color: var(--accent);
   font-weight: 700;
   overflow: hidden;
 }
@@ -96,10 +96,11 @@ onMounted(async () => {
 
 .friend-link-card strong {
   font-size: 1.05rem;
+  color: var(--text-strong);
 }
 
 .friend-link-card span:last-child {
-  color: var(--text-muted, #64748b);
+  color: var(--text-muted);
   font-size: 0.92rem;
   line-height: 1.5;
 }

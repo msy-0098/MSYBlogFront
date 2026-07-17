@@ -97,12 +97,12 @@ function formatReadingTime(summary: string) {
   gap: clamp(1.5rem, 3vw, 2.5rem);
   align-items: stretch;
   padding: clamp(1.4rem, 2.5vw, 2rem);
-  border: 1px solid rgba(17, 24, 39, 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: 2rem;
   background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.16), transparent 40%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.1);
+    radial-gradient(circle at top left, color-mix(in srgb, var(--accent) 18%, transparent), transparent 40%),
+    linear-gradient(145deg, var(--surface-card), var(--surface-soft));
+  box-shadow: var(--shadow-soft);
 }
 
 .featured-essay__visual {
@@ -110,7 +110,7 @@ function formatReadingTime(summary: string) {
   min-height: 100%;
   border-radius: 1.5rem;
   overflow: hidden;
-  background: #e2e8f0;
+  background: var(--surface-soft);
 }
 
 .featured-essay__image {
@@ -125,7 +125,7 @@ function formatReadingTime(summary: string) {
   min-height: 100%;
   padding: clamp(1.5rem, 3vw, 2rem);
   background:
-    linear-gradient(155deg, rgba(17, 24, 39, 0.92), rgba(59, 130, 246, 0.72)),
+    linear-gradient(155deg, rgba(17, 24, 39, 0.92), color-mix(in srgb, var(--accent) 55%, #1e293b)),
     linear-gradient(180deg, #0f172a, #1e293b);
   color: #ffffff;
 }
@@ -157,7 +157,7 @@ function formatReadingTime(summary: string) {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  color: #475569;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
@@ -171,13 +171,13 @@ function formatReadingTime(summary: string) {
   width: 0.35rem;
   height: 0.35rem;
   border-radius: 999px;
-  background: rgba(59, 130, 246, 0.48);
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
   content: '';
 }
 
 .featured-essay__content h1 {
   margin: 0;
-  color: #0f172a;
+  color: var(--text-strong);
   font-size: clamp(2.3rem, 5vw, 4.4rem);
   line-height: 0.98;
   letter-spacing: -0.04em;
@@ -185,7 +185,7 @@ function formatReadingTime(summary: string) {
 
 .featured-essay__summary {
   margin: 1rem 0 0;
-  color: #0f172a;
+  color: var(--text-body);
   font-size: clamp(1.05rem, 1.8vw, 1.35rem);
   line-height: 1.75;
 }
@@ -193,7 +193,7 @@ function formatReadingTime(summary: string) {
 .featured-essay__intro {
   max-width: 54ch;
   margin: 1rem 0 0;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 1rem;
   line-height: 1.85;
 }
@@ -205,7 +205,7 @@ function formatReadingTime(summary: string) {
   gap: 1rem;
   margin-top: auto;
   padding-top: 1rem;
-  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .featured-essay__author {
@@ -214,14 +214,14 @@ function formatReadingTime(summary: string) {
 }
 
 .featured-essay__eyebrow {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.82rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .featured-essay__author strong {
-  color: #0f172a;
+  color: var(--text-strong);
   font-size: 1.05rem;
 }
 

@@ -2,6 +2,7 @@
 @import './admin.css';
 @import './public-shell.css';
 @import './public-content.css';
+@import './public-theme.css';
 
 :root {
   color: var(--text-strong);

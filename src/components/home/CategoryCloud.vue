@@ -55,9 +55,8 @@ const accents = ['#3B82F6', '#10B981', '#F59E0B', '#06B6D4', '#8B5CF6', '#EF4444
   gap: 0.5rem;
   padding: 1rem 1.1rem;
   border-radius: 1.25rem;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.98)),
-    rgba(255, 255, 255, 0.9);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
 }
 
 .category-cloud-card__eyebrow {
@@ -75,7 +74,7 @@ const accents = ['#3B82F6', '#10B981', '#F59E0B', '#06B6D4', '#8B5CF6', '#EF4444
 
 .category-cloud-card .category-summary {
   margin-top: 0;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.92rem;
   line-height: 1.6;
 }

@@ -1,5 +1,6 @@
 .public-root-main {
   color: var(--text-strong);
+  background: var(--surface-page);
 }
 
 .public-root-main img {
@@ -42,13 +43,13 @@
 .public-root-main .primary-button {
   border: 1px solid var(--accent);
   background: var(--accent);
-  color: #ffffff;
+  color: var(--text-on-accent);
 }
 
 .public-root-main .secondary-button,
 .public-root-main .section-link {
   border: 1px solid var(--border-subtle);
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--surface-card);
   color: var(--text-strong);
 }
 
@@ -74,15 +75,7 @@
 }
 
 .public-root-main .placeholder-view .eyebrow {
-  color: #8b5cf6;
-}
-
-.public-root-main .reading-page {
-  width: min(var(--page-max-width), calc(100% - 3rem));
-}
-
-.public-root-main .post-detail-page {
-  width: min(var(--page-max-width), calc(100% - 3rem));
+  color: var(--accent);
 }
 
 .public-root-main .reading-heading {
@@ -123,8 +116,8 @@
 .public-root-main .taxonomy-card {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: var(--shadow-soft);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-card);
 }
 
 .public-root-main .taxonomy-card {
@@ -139,19 +132,19 @@
 }
 
 .public-root-main .taxonomy-card:hover {
-  border-color: rgba(59, 130, 246, 0.32);
-  box-shadow: 0 22px 56px rgba(15, 23, 42, 0.1);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-subtle));
+  box-shadow: var(--shadow-soft);
   transform: translateY(-4px);
 }
 
 .public-root-main .taxonomy-card span {
-  color: #111827;
+  color: var(--text-strong);
   font-size: 1.2rem;
   font-weight: 850;
 }
 
 .public-root-main .taxonomy-card strong {
-  color: #2563eb;
+  color: var(--accent);
   font-size: 0.95rem;
 }
 
@@ -188,8 +181,8 @@
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 1rem 1.1rem;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: var(--shadow-soft);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-card);
 }
 
 .public-root-main .post-toc-list {
@@ -215,12 +208,16 @@
 }
 
 .public-root-main .post-detail-header .tag-row a {
-  border: 1px solid rgba(17, 24, 39, 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: 999px;
   padding: 0.35rem 0.7rem;
-  background: #f8fafc;
-  color: #4b5563;
+  background: var(--surface-soft);
+  color: var(--text-muted);
   font-size: 0.86rem;
+}
+
+.public-root-main .post-meta {
+  color: var(--text-muted);
 }
 
 @media (max-width: 980px) {

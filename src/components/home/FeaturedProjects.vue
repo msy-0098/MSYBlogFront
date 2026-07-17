@@ -65,9 +65,9 @@ const accents = ['#3B82F6', '#8B5CF6', '#F59E0B', '#10B981']
   aspect-ratio: 16 / 8;
   margin-bottom: 0.85rem;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(226, 232, 240, 0.92)),
-    #f8fafc;
-  border: 1px solid rgba(148, 163, 184, 0.18);
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-card) 92%, transparent), var(--surface-soft)),
+    var(--surface-soft);
+  border: 1px solid var(--border-subtle);
 }
 
 .project-support-card .project-title {
@@ -76,7 +76,7 @@ const accents = ['#3B82F6', '#8B5CF6', '#F59E0B', '#10B981']
 }
 
 .project-support-card .project-description {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.92rem;
   line-height: 1.65;
 }
