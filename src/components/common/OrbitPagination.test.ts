@@ -35,6 +35,8 @@ describe('OrbitPagination', () => {
     expect(wrapper.emitted('change')).toEqual([[1], [3]])
 
     await wrapper.setProps({ currentPage: 3 })
+    expect(wrapper.get('[data-test="orbit-pagination-prev"]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.get('[data-test="orbit-pagination-next"]').attributes('disabled')).toBeDefined()
     await wrapper.get('[data-test="orbit-pagination-next"]').trigger('click')
     expect(wrapper.emitted('change')).toHaveLength(2)
   })
