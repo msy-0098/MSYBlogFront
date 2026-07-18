@@ -29,6 +29,11 @@ vi.mock('../api/blog', () => ({
 
 describe('PostListView', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
+    route.value = {
+      fullPath: '/categories/go',
+      params: { slug: 'go' }
+    }
     vi.mocked(getPosts).mockResolvedValue(pageResult())
     vi.mocked(getCategoryPosts).mockResolvedValue(pageResult())
     vi.mocked(getTagPosts).mockResolvedValue(pageResult())
@@ -47,7 +52,55 @@ describe('PostListView', () => {
     expect(wrapper.get('h1').text()).toContain('Go')
     expect(wrapper.text()).toContain('继续阅读')
     expect(wrapper.find('[data-test="post-list-grid"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="orbit-pagination"]').exists()).toBe(true)
     expect(getCategoryPosts).toHaveBeenCalledWith('go', { page: 1, pageSize: 9 })
+  })
+
+  it('uses the all-posts API and loads the next page through OrbitPagination', async () => {
+    const wrapper = mount(PostListView, {
+      props: { mode: 'all' },
+      global: { stubs: { RouterLink: RouterLinkStub } }
+    })
+
+    await flushPromises()
+
+    expect(getPosts).toHaveBeenCalledWith({ page: 1, pageSize: 9 })
+
+    await wrapper.get('[data-test="orbit-pagination-next"]').trigger('click')
+    await flushPromises()
+
+    expect(getPosts).toHaveBeenLastCalledWith({ page: 2, pageSize: 9 })
+  })
+
+  it('uses the tag display name and sends pagination to the tag API', async () => {
+    route.value = {
+      fullPath: '/tags/backend',
+      params: { slug: 'backend' }
+    }
+
+    const wrapper = mount(PostListView, {
+      props: { mode: 'tag' },
+      global: { stubs: { RouterLink: RouterLinkStub } }
+    })
+
+    await flushPromises()
+
+    expect(wrapper.get('h1').text()).toContain('Backend')
+    expect(getTagPosts).toHaveBeenCalledWith('backend', { page: 1, pageSize: 9 })
+  })
+
+  it('does not render pagination for an empty single-page result', async () => {
+    vi.mocked(getPosts).mockResolvedValue({ ...pageResult(), list: [], total: 0 })
+
+    const wrapper = mount(PostListView, {
+      props: { mode: 'all' },
+      global: { stubs: { RouterLink: RouterLinkStub } }
+    })
+
+    await flushPromises()
+
+    expect(wrapper.find('.state-line').exists()).toBe(true)
+    expect(wrapper.find('[data-test="orbit-pagination"]').exists()).toBe(false)
   })
 })
 

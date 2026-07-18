@@ -13,6 +13,7 @@ import {
   type Taxonomy
 } from '../api/blog'
 import PostCard from '../components/blog/PostCard.vue'
+import OrbitPagination from '../components/common/OrbitPagination.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -118,12 +119,12 @@ watch(
       </div>
 
       <p v-else class="state-line">暂时还没有文章。</p>
-
-      <nav v-if="page && page.total > pageSize" class="pagination-bar" aria-label="文章分页">
-        <button type="button" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">上一页</button>
-        <span>第 {{ currentPage }} / {{ totalPages }} 页</span>
-        <button type="button" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">下一页</button>
-      </nav>
+      <OrbitPagination
+        v-if="page"
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        @change="goToPage"
+      />
     </template>
   </section>
 </template>

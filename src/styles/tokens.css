@@ -19,6 +19,8 @@
   --text-body: #3c4043;
   --text-muted: #5f6368;
   --text-on-accent: #ffffff;
+  --orbit-public-current-text: #ffffff;
+  --orbit-admin-current-text: #241b16;
   --text-code: #e5e7eb;
   --text-code-inline: #1e3a8a;
 
@@ -76,6 +78,8 @@ html[data-theme='dark'] {
   --text-body: #c5d0dc;
   --text-muted: #8b98a8;
   --text-on-accent: #ffffff;
+  --orbit-public-current-text: #0b0f14;
+  --orbit-admin-current-text: #10151c;
   --text-code: #e2e8f0;
   --text-code-inline: #93c5fd;
 
