@@ -22,7 +22,7 @@ describe('AppHeader', () => {
     })
 
     const labels = wrapper.findAll('[data-test="primary-nav"] a').map((link) => link.text())
-    expect(labels).toEqual(['文章', '分类', '项目', '友链', '关于', '搜索'])
+    expect(labels).toEqual(['文章', '分类', '项目', 'CodeMax', '友链', '关于', '搜索'])
 
     const toggle = wrapper.get('[data-test="mobile-nav-toggle"]')
     await toggle.trigger('click')

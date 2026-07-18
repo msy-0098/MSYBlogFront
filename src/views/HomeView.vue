@@ -13,6 +13,7 @@ import { getSiteProfile, type SiteProfile } from '../api/site'
 import CategoryCloud from '../components/home/CategoryCloud.vue'
 import FeaturedEssay from '../components/home/FeaturedEssay.vue'
 import FeaturedProjects from '../components/home/FeaturedProjects.vue'
+import FeaturedCodeMax from '../components/home/FeaturedCodeMax.vue'
 import LatestPosts from '../components/home/LatestPosts.vue'
 
 const fallbackProfile: SiteProfile = {
@@ -112,6 +113,7 @@ onMounted(async () => {
     <LatestPosts :posts="latestPosts" :loading="contentLoading" :error="contentError" />
     <CategoryCloud :categories="categories" :loading="contentLoading" :error="contentError" />
     <FeaturedProjects :projects="projects" :loading="contentLoading" :error="contentError" />
+    <FeaturedCodeMax />
 
     <section class="about-strip google-flow-section" aria-labelledby="about-strip-title">
       <div>

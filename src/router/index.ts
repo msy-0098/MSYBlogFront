@@ -63,6 +63,11 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('../views/ProjectsView.vue')
   },
   {
+    path: '/codemax',
+    name: 'codemax',
+    component: () => import('../views/CodeMaxView.vue')
+  },
+  {
     path: '/links',
     name: 'links',
     component: () => import('../views/LinksView.vue')

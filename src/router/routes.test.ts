@@ -18,6 +18,7 @@ describe('routes', () => {
         '/archive',
         '/search',
         '/projects',
+        '/codemax',
         '/links',
         '/about',
         '/admin/login'
@@ -36,12 +37,20 @@ describe('routes', () => {
         '/archive',
         '/search',
         '/projects',
+        '/codemax',
         '/links',
         '/about'
       ].includes(route.path)
     )
 
     expect(readingRoutes.every((route) => typeof route.component === 'function')).toBe(true)
+  })
+
+  it('exposes the public CodeMax download route', () => {
+    const route = routes.find((item) => item.name === 'codemax')
+
+    expect(route?.path).toBe('/codemax')
+    expect(route?.meta?.requiresAuth).not.toBe(true)
   })
 
   it('defines concrete projects, about, and not found routes', () => {
