@@ -505,16 +505,14 @@
 }
 
 .public-root-main .codemax-platform-card__icon {
-  display: grid;
+  display: block;
   width: 2.5rem;
   height: 2.5rem;
-  place-items: center;
   border: 1px solid var(--border-subtle);
   border-radius: 0.9rem;
-  background: var(--surface-soft);
-  color: var(--accent);
-  font-size: 1.25rem;
-  font-weight: 800;
+  background: #fff;
+  object-fit: contain;
+  padding: 0.35rem;
 }
 
 .public-root-main .codemax-platform-card__status,

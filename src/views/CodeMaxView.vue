@@ -3,6 +3,7 @@ const platforms = [
   {
     key: 'windows',
     name: 'Windows',
+    icon: '/downloads/platform-icons/windows.png',
     version: 'x64 安装包',
     status: '可用',
     description: '下载安装包，安装后即可在 PowerShell 或 Windows Terminal 中使用。'
@@ -10,6 +11,7 @@ const platforms = [
   {
     key: 'macos',
     name: 'macOS',
+    icon: '/downloads/platform-icons/macos.png',
     version: '即将支持',
     status: '敬请期待',
     description: 'macOS 版本正在准备中，先把这份期待记下来吧。'
@@ -17,6 +19,7 @@ const platforms = [
   {
     key: 'linux',
     name: 'Linux',
+    icon: '/downloads/platform-icons/linux.png',
     version: '即将支持',
     status: '敬请期待',
     description: 'Linux 版本正在准备中，更多发行版支持稍后见。'
@@ -74,9 +77,11 @@ const platforms = [
           :data-platform="platform.key"
         >
           <div class="codemax-platform-card__topline">
-            <span class="codemax-platform-card__icon" aria-hidden="true">
-              {{ platform.key === 'windows' ? '⌘' : platform.key === 'macos' ? '◌' : '↯' }}
-            </span>
+            <img
+              class="codemax-platform-card__icon"
+              :src="platform.icon"
+              :alt="`${platform.name} 平台图标`"
+            />
             <span class="codemax-platform-card__status">{{ platform.status }}</span>
           </div>
           <h3>{{ platform.name }}</h3>

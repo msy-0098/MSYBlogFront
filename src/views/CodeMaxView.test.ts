@@ -35,4 +35,18 @@ describe('CodeMaxView', () => {
     expect(wrapper.find('[data-platform="macos"] a').exists()).toBe(false)
     expect(wrapper.find('[data-platform="linux"] a').exists()).toBe(false)
   })
+
+  it('uses the matching platform artwork for each release card', () => {
+    const wrapper = mountView()
+
+    expect(wrapper.get('[data-platform="macos"] img').attributes('src')).toBe(
+      '/downloads/platform-icons/macos.png'
+    )
+    expect(wrapper.get('[data-platform="windows"] img').attributes('src')).toBe(
+      '/downloads/platform-icons/windows.png'
+    )
+    expect(wrapper.get('[data-platform="linux"] img').attributes('src')).toBe(
+      '/downloads/platform-icons/linux.png'
+    )
+  })
 })
