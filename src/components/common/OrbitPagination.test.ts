@@ -4,9 +4,9 @@ import { describe, expect, it } from 'vitest'
 import OrbitPagination from './OrbitPagination.vue'
 
 describe('OrbitPagination', () => {
-  it('does not render for a single page', () => {
+  it.each([1, 0, -1])('does not render when totalPages is %i', (totalPages) => {
     const wrapper = mount(OrbitPagination, {
-      props: { currentPage: 1, totalPages: 1 }
+      props: { currentPage: 1, totalPages }
     })
 
     expect(wrapper.find('[data-test="orbit-pagination"]').exists()).toBe(false)
@@ -14,7 +14,7 @@ describe('OrbitPagination', () => {
 
   it('renders the orbit page indicator and disables the first-page previous button', () => {
     const wrapper = mount(OrbitPagination, {
-      props: { currentPage: 1, totalPages: 5, label: '文章分页' }
+      props: { currentPage: 1, totalPages: 5 }
     })
 
     expect(wrapper.get('[data-test="orbit-pagination"]').attributes('aria-label')).toBe('文章分页')
