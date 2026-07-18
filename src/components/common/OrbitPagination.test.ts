@@ -21,7 +21,9 @@ describe('OrbitPagination', () => {
     expect(wrapper.get('[data-test="orbit-pagination-current"]').text()).toBe('第 1 / 5 页')
     expect(wrapper.get('[data-test="orbit-pagination-current"]').attributes('aria-current')).toBe('page')
     expect(wrapper.get('[data-test="orbit-pagination-prev"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.get('[data-test="orbit-pagination-prev"]').attributes('aria-disabled')).toBe('true')
     expect(wrapper.get('[data-test="orbit-pagination-next"]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.get('[data-test="orbit-pagination-next"]').attributes('aria-disabled')).toBe('false')
   })
 
   it('emits the previous and next pages and ignores out-of-range navigation', async () => {

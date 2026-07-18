@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { Delete, Refresh, View } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+
+import OrbitPagination from '../../components/common/OrbitPagination.vue'
 
 import {
   deleteAdminComment,
@@ -15,6 +17,7 @@ const loading = ref(false)
 const page = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize.value)))
 
 onMounted(loadComments)
 
@@ -126,13 +129,11 @@ function formatDate(value: string): string {
       </el-table>
 
       <div class="admin-pagination">
-        <el-pagination
-          background
-          layout="prev, pager, next, total"
+        <OrbitPagination
           :current-page="page"
-          :page-size="pageSize"
-          :total="total"
-          @current-change="changePage"
+          :total-pages="totalPages"
+          variant="admin"
+          @change="changePage"
         />
       </div>
     </section>

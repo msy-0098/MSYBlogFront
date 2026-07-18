@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 
 import { searchPosts, type PageResult, type PostSummary } from '../api/blog'
 import PostCard from '../components/blog/PostCard.vue'
+import OrbitPagination from '../components/common/OrbitPagination.vue'
 
 const keyword = ref('')
 const lastQuery = ref('')
@@ -73,11 +74,12 @@ function goToPage(nextPage: number) {
     <div v-if="result?.list.length" class="post-grid reading-grid" data-test="search-result-grid">
       <PostCard v-for="post in result.list" :key="post.slug" :post="post" />
     </div>
-
-    <nav v-if="result && result.total > pageSize" class="pagination-bar" aria-label="搜索分页">
-      <button type="button" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">上一页</button>
-      <span>第 {{ currentPage }} / {{ totalPages }} 页</span>
-      <button type="button" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">下一页</button>
-    </nav>
+    <OrbitPagination
+      v-if="result"
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      label="搜索分页"
+      @change="goToPage"
+    />
   </section>
 </template>

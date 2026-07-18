@@ -100,7 +100,7 @@ function goToPage(page: number) {
   --orbit-border: var(--border-subtle);
   --orbit-surface: var(--surface-elevated);
   --orbit-text: var(--text-body);
-  --orbit-muted: var(--text-muted);
+  --orbit-current-text: var(--orbit-public-current-text);
   --orbit-shadow: var(--shadow-soft);
 
   display: flex;
@@ -112,7 +112,7 @@ function goToPage(page: number) {
   min-width: 0;
   box-sizing: border-box;
   padding: 0.5rem 0.75rem;
-  overflow: hidden;
+  overflow: visible;
   color: var(--orbit-text);
 }
 
@@ -123,9 +123,10 @@ function goToPage(page: number) {
   --orbit-border: var(--admin-border);
   --orbit-surface: var(--admin-surface-solid);
   --orbit-text: var(--admin-text-primary);
-  --orbit-muted: var(--admin-text-secondary);
+  --orbit-current-text: var(--orbit-admin-current-text);
   --orbit-shadow: var(--admin-shadow-sm);
 }
+
 
 .orbit-pagination__side {
   display: flex;
@@ -184,10 +185,9 @@ function goToPage(page: number) {
   transform: translateY(0);
 }
 
-.orbit-pagination__button:focus-visible,
-.orbit-pagination__current:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--orbit-accent) 36%, transparent);
-  outline-offset: 3px;
+.orbit-pagination__button:focus-visible {
+  outline: 3px solid var(--orbit-accent);
+  outline-offset: 2px;
 }
 
 .orbit-pagination__button:disabled {
@@ -209,11 +209,13 @@ function goToPage(page: number) {
   flex: 0 1 auto;
   align-items: center;
   justify-content: center;
+  min-width: 0;
   max-width: 100%;
   padding: 0.68rem 1rem;
   overflow: hidden;
   background: var(--orbit-accent);
-  color: var(--text-on-accent);
+  color: var(--orbit-current-text);
+  text-overflow: ellipsis;
   white-space: nowrap;
   box-shadow: 0 0.4rem 1.2rem var(--orbit-accent-soft);
 }
@@ -292,7 +294,7 @@ function goToPage(page: number) {
 @media (max-width: 640px) {
   .orbit-pagination {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 8.5rem) minmax(0, 1fr);
     gap: 0.55rem;
     padding-inline: 0.25rem;
   }
