@@ -12,6 +12,15 @@ const currentYear = new Date().getFullYear()
         <span aria-hidden="true">·</span>
         <a href="/api/sitemap.xml">Sitemap</a>
         <span aria-hidden="true">·</span>
+        <a
+          data-test="icp-filing-link"
+          href="https://beian.miit.gov.cn/"
+          rel="noreferrer"
+          target="_blank"
+        >
+          豫ICP备2026032113号-1
+        </a>
+        <span aria-hidden="true">·</span>
         <span>Powered by Vue + Go</span>
       </p>
     </div>
