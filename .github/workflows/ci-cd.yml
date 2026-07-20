@@ -91,4 +91,4 @@ jobs:
             dist/ "${DEPLOY_USER}@${DEPLOY_HOST}:/var/www/blog/releases/${RELEASE_ID}/"
 
           ssh ${SSH_OPTIONS} "${DEPLOY_USER}@${DEPLOY_HOST}" \
-            "ln -sfn /var/www/blog/releases/${RELEASE_ID} /var/www/blog/current"
+            "ln -sfnT /var/www/blog/releases/${RELEASE_ID} /var/www/blog/current"
