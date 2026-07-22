@@ -942,6 +942,13 @@ h2 {
   background: #ffffff;
   color: #1A73E8;
   font-weight: 700;
+  transition: opacity 200ms ease, color 200ms ease;
+}
+
+.visitor-code-row button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  color: #5F6368;
 }
 
 .visitor-submit {

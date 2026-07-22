@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 
 import {
   createPostComment,
@@ -26,6 +26,8 @@ const authPanelOpen = ref(false)
 const authMode = ref<'login' | 'register' | 'reset'>('login')
 const authLoading = ref(false)
 const codeSending = ref(false)
+const codeCountdown = ref(0)
+let codeTimer: ReturnType<typeof setInterval> | null = null
 const authForm = ref({
   email: '',
   nickname: '',
@@ -85,7 +87,36 @@ function closeAuthPanel() {
   authPanelOpen.value = false
 }
 
+function startCodeCountdown(duration = 60) {
+  codeCountdown.value = duration
+  if (codeTimer) {
+    clearInterval(codeTimer)
+  }
+  codeTimer = setInterval(() => {
+    if (codeCountdown.value > 1) {
+      codeCountdown.value--
+    } else {
+      codeCountdown.value = 0
+      if (codeTimer) {
+        clearInterval(codeTimer)
+        codeTimer = null
+      }
+    }
+  }, 1000)
+}
+
+onUnmounted(() => {
+  if (codeTimer) {
+    clearInterval(codeTimer)
+    codeTimer = null
+  }
+})
+
 async function sendCode() {
+  if (codeSending.value || codeCountdown.value > 0) {
+    return
+  }
+
   if (!authForm.value.email) {
     commentError.value = '请先填写邮箱呀'
     return
@@ -98,6 +129,7 @@ async function sendCode() {
     const purpose = authMode.value === 'reset' ? 'reset' : 'register'
     await sendVisitorEmailCode(authForm.value.email, purpose)
     commentError.value = '验证码已发送，请查收邮箱哦'
+    startCodeCountdown(60)
   } catch (err) {
     commentError.value = err instanceof Error ? err.message : '验证码发送失败'
   } finally {
@@ -291,8 +323,13 @@ function formatCommentTime(value: string): string {
           <span>验证码</span>
           <div class="visitor-code-row">
             <input v-model="authForm.code" autocomplete="one-time-code" />
-            <button data-test="send-visitor-code" type="button" :disabled="codeSending" @click="sendCode">
-              {{ codeSending ? '发送中' : '发送验证码' }}
+            <button
+              data-test="send-visitor-code"
+              type="button"
+              :disabled="codeSending || codeCountdown > 0"
+              @click="sendCode"
+            >
+              {{ codeSending ? '发送中...' : codeCountdown > 0 ? `${codeCountdown}s 后重发` : '发送验证码' }}
             </button>
           </div>
         </label>

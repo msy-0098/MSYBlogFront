@@ -85,7 +85,8 @@ describe('PostDetailView', () => {
     expect(wrapper.find('[data-test="visitor-email"]').exists()).toBe(true)
   })
 
-  it('sends verification code to the email typed in the registration form', async () => {
+  it('sends verification code and starts a 60s countdown timer', async () => {
+    vi.useFakeTimers()
     const wrapper = mount(PostDetailView, {
       global: {
         stubs: {
@@ -101,9 +102,21 @@ describe('PostDetailView', () => {
     await flushPromises()
     await wrapper.find('[data-test="open-comment-auth"]').trigger('click')
     await wrapper.find('[data-test="visitor-email"]').setValue('new-reader@example.com')
-    await wrapper.find('[data-test="send-visitor-code"]').trigger('click')
+    
+    const sendBtn = wrapper.find('[data-test="send-visitor-code"]')
+    expect(sendBtn.text()).toBe('发送验证码')
+
+    await sendBtn.trigger('click')
     await flushPromises()
 
     expect(sendVisitorEmailCode).toHaveBeenCalledWith('new-reader@example.com', 'register')
+    expect(sendBtn.text()).toBe('60s 后重发')
+    expect((sendBtn.element as HTMLButtonElement).disabled).toBe(true)
+
+    vi.advanceTimersByTime(10000)
+    await wrapper.vm.$nextTick()
+    expect(sendBtn.text()).toBe('50s 后重发')
+
+    vi.useRealTimers()
   })
 })
