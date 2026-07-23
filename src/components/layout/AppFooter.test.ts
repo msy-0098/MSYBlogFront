@@ -17,6 +17,21 @@ describe('AppFooter', () => {
     expect(filingLink.attributes('rel')).toBe('noreferrer')
   })
 
+  it('renders the public security filing icon and official query link', () => {
+    const wrapper = mount(AppFooter)
+    const filingLink = wrapper.get('[data-test="public-security-filing-link"]')
+    const filingIcon = filingLink.get('img')
+
+    expect(filingLink.text()).toBe('冀公网安备13060602001918号')
+    expect(filingLink.attributes('href')).toBe(
+      'https://beian.mps.gov.cn/#/query/webSearch?code=13060602001918',
+    )
+    expect(filingLink.attributes('target')).toBe('_blank')
+    expect(filingLink.attributes('rel')).toBe('noreferrer')
+    expect(filingIcon.attributes('src')).toBe('/images/beian-police.png')
+    expect(filingIcon.attributes('alt')).toBe('')
+    expect(filingIcon.attributes('aria-hidden')).toBe('true')
+  })
   it('keeps the public resource links in the footer', () => {
     const wrapper = mount(AppFooter)
 

@@ -135,6 +135,7 @@
 
 .footer-links {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.45rem;
 }
@@ -146,6 +147,20 @@
 
 .footer-links a:hover {
   text-decoration: underline;
+}
+
+.public-security-filing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.public-security-filing img {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
 }
 
 @media (max-width: 720px) {

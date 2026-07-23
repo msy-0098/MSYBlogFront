@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const publicSecurityFilingIcon = '/images/beian-police.png'
 const currentYear = new Date().getFullYear()
 </script>
 
@@ -19,6 +20,17 @@ const currentYear = new Date().getFullYear()
           target="_blank"
         >
           豫ICP备2026032113号-1
+        </a>
+        <span aria-hidden="true">·</span>
+        <a
+          class="public-security-filing"
+          data-test="public-security-filing-link"
+          href="https://beian.mps.gov.cn/#/query/webSearch?code=13060602001918"
+          rel="noreferrer"
+          target="_blank"
+        >
+          <img :src="publicSecurityFilingIcon" aria-hidden="true" alt="" />
+          <span>冀公网安备13060602001918号</span>
         </a>
         <span aria-hidden="true">·</span>
         <span>Powered by Vue + Go</span>
