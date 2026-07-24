@@ -5,6 +5,7 @@ import { computed, onMounted, ref } from 'vue'
 
 import { getAdminDashboard, type AdminDashboard, type AdminTrendPoint } from '../../api/admin'
 import { useTheme } from '../../composables/useTheme'
+import { getFriendlyErrorMessage } from '../../utils/apiError'
 
 const loading = ref(false)
 const dashboard = ref<AdminDashboard | null>(null)
@@ -26,8 +27,8 @@ async function loadDashboard() {
   loading.value = true
   try {
     dashboard.value = await getAdminDashboard()
-  } catch {
-    ElMessage.error('工作台数据加载失败')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '工作台数据加载失败'))
   } finally {
     loading.value = false
   }

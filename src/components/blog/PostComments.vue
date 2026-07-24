@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 
 import {
   createPostComment,
@@ -39,6 +39,9 @@ const authForm = ref({
 const visitorSession = ref(sessionStorage.getItem('visitor_session') === '1')
 const visitorUser = ref<VisitorUser | null>(readVisitorUser())
 const verificationCountdown = useVerificationCountdown()
+const codeCountdown = ref(0)
+let activeVerification: { email: string; purpose: VerificationPurpose } | null = null
+let stopCountdownWatch: (() => void) | null = null
 
 const isVisitorLoggedIn = computed(() => Boolean(visitorSession.value && visitorUser.value))
 const authTitle = computed(() => {
@@ -53,7 +56,6 @@ const authSubmitLabel = computed(() => {
   return '登录'
 })
 const verificationPurpose = computed<VerificationPurpose>(() => (authMode.value === 'reset' ? 'reset' : 'register'))
-const codeCountdown = computed(() => verificationCountdown.remaining(authForm.value.email, verificationPurpose.value).value)
 
 watch(
   () => props.slug,
@@ -63,6 +65,10 @@ watch(
   },
   { immediate: true }
 )
+
+watch([authPanelOpen, () => authForm.value.email, verificationPurpose], syncVerificationSubscription, { immediate: true })
+
+onUnmounted(releaseActiveVerification)
 
 async function loadComments() {
   if (!props.slug) {
@@ -77,7 +83,7 @@ async function loadComments() {
     const result = await getPostComments(props.slug)
     comments.value = result.list
   } catch (err) {
-    commentError.value = err instanceof Error ? err.message : '评论加载失败'
+    commentError.value = getFriendlyErrorMessage(err, '评论加载失败')
   } finally {
     commentsLoading.value = false
   }
@@ -92,6 +98,29 @@ function openAuthPanel(mode: 'login' | 'register' | 'reset' = 'login') {
 
 function closeAuthPanel() {
   authPanelOpen.value = false
+}
+
+function syncVerificationSubscription() {
+  releaseActiveVerification()
+  if (!authPanelOpen.value || !authForm.value.email.trim()) return
+
+  const email = authForm.value.email
+  const purpose = verificationPurpose.value
+  const remaining = verificationCountdown.remaining(email, purpose)
+  activeVerification = { email, purpose }
+  stopCountdownWatch = watch(remaining, (value) => {
+    codeCountdown.value = value
+  }, { immediate: true })
+}
+
+function releaseActiveVerification() {
+  stopCountdownWatch?.()
+  stopCountdownWatch = null
+  codeCountdown.value = 0
+  if (!activeVerification) return
+
+  verificationCountdown.release(activeVerification.email, activeVerification.purpose)
+  activeVerification = null
 }
 
 async function sendCode() {
@@ -178,7 +207,7 @@ async function submitComment() {
     commentContent.value = ''
     await loadComments()
   } catch (err) {
-    commentError.value = err instanceof Error ? err.message : '评论发布失败'
+    commentError.value = getFriendlyErrorMessage(err, '评论发布失败')
   } finally {
     commentSubmitting.value = false
   }

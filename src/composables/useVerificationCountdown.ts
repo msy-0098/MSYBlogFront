@@ -15,6 +15,7 @@ interface SharedCountdownState {
 export interface VerificationCountdown {
   remaining: (email: string, purpose: VerificationPurpose) => Ref<number>
   start: (email: string, purpose: VerificationPurpose, seconds: number) => void
+  release: (email: string, purpose: VerificationPurpose) => void
   dispose: () => void
 }
 
@@ -58,17 +59,34 @@ export function useVerificationCountdown(): VerificationCountdown {
     ensureInterval()
   }
 
+  const release = (email: string, purpose: VerificationPurpose) => {
+    const key = getCooldownKey(email, purpose)
+    if (!key || disposed) return
+
+    unsubscribe(key)
+  }
+
   const dispose = () => {
     if (disposed) return
     disposed = true
-    for (const key of keys) sharedStates.get(key)?.subscribers.delete(subscriber)
-    keys.clear()
-    stopIntervalIfIdle()
+    for (const key of [...keys]) unsubscribe(key)
   }
 
   if (getCurrentScope()) onScopeDispose(dispose)
 
-  return { remaining, start, dispose }
+  function unsubscribe(key: string) {
+    keys.delete(key)
+    const state = sharedStates.get(key)
+    if (!state) return
+
+    state.subscribers.delete(subscriber)
+    if (state.subscribers.size === 0 && syncState(key) === 0) {
+      sharedStates.delete(key)
+    }
+    stopIntervalIfIdle()
+  }
+
+  return { remaining, start, release, dispose }
 }
 
 function getSharedState(key: string): SharedCountdownState {

@@ -222,4 +222,28 @@ describe('useVerificationCountdown', () => {
 
     countdown.dispose()
   })
+
+  it('releases an inactive key so its empty shared state can be collected', () => {
+    const countdown = useVerificationCountdown()
+    const firstRef = countdown.remaining('abandoned@example.com', 'register')
+
+    countdown.release('abandoned@example.com', 'register')
+    const secondRef = countdown.remaining('abandoned@example.com', 'register')
+
+    expect(secondRef).not.toBe(firstRef)
+    countdown.dispose()
+  })
+
+  it('keeps an active cooldown persisted when its subscription is released', () => {
+    const countdown = useVerificationCountdown()
+    countdown.start('persisted@example.com', 'register', 20)
+
+    countdown.release('persisted@example.com', 'register')
+    const restored = useVerificationCountdown()
+
+    expect(sessionStorage.getItem('email-code-cooldown:register:persisted%40example.com')).toBeTypeOf('string')
+    expect(restored.remaining('persisted@example.com', 'register').value).toBe(20)
+    countdown.dispose()
+    restored.dispose()
+  })
 })
