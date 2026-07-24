@@ -2,6 +2,7 @@ import type { AxiosAdapter } from 'axios'
 import { describe, expect, it } from 'vitest'
 
 import { createApiClient } from './site'
+import type { EmailCodeResult } from './blog'
 import {
   createPostComment,
   getArchive,
@@ -96,7 +97,7 @@ describe('blog api', () => {
         })
 
         if (config.url === '/auth/email-code') {
-          return okEnvelope({ sent: true }, config)
+          return okEnvelope({ sent: true, cooldownSeconds: 75, expiresIn: 600 }, config)
         }
 
         if (config.url === '/auth/register' || config.url === '/auth/login') {
@@ -135,7 +136,8 @@ describe('blog api', () => {
       }
     })
 
-    await expect(sendVisitorEmailCode('reader@example.com', 'register', client)).resolves.toEqual({ sent: true })
+    const emailCodeResult: EmailCodeResult = await sendVisitorEmailCode('reader@example.com', 'register', client)
+    expect(emailCodeResult).toEqual({ sent: true, cooldownSeconds: 75, expiresIn: 600 })
     await expect(
       registerVisitor(
         {

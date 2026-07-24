@@ -90,6 +90,14 @@ export interface VisitorLoginPayload {
   password: string
 }
 
+export type VerificationPurpose = 'register' | 'reset'
+
+export interface EmailCodeResult {
+  sent: boolean
+  cooldownSeconds: number
+  expiresIn: number
+}
+
 export interface CommentAuthor {
   email: string
   nickname: string
@@ -211,11 +219,11 @@ export async function likePost(
 
 export async function sendVisitorEmailCode(
   email: string,
-  purpose: 'register' | 'reset' = 'register',
+  purpose: VerificationPurpose = 'register',
   client: AxiosInstance = apiClient
-): Promise<{ sent: boolean }> {
+): Promise<EmailCodeResult> {
   return unwrap(
-    (await client.post<ApiEnvelope<{ sent: boolean }>>('/auth/email-code', { email, purpose })).data
+    (await client.post<ApiEnvelope<EmailCodeResult>>('/auth/email-code', { email, purpose })).data
   )
 }
 
