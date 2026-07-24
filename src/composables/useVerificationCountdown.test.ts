@@ -21,7 +21,7 @@ describe('useVerificationCountdown', () => {
     first.start(' Reader@Example.com ', 'register', 15)
 
     expect(first.remaining('reader@example.com', 'register').value).toBe(15)
-    expect(sessionStorage.getItem('email-code-cooldown:register:reader@example.com')).toBeTypeOf('string')
+    expect(sessionStorage.getItem('email-code-cooldown:register:reader%40example.com')).toBeTypeOf('string')
 
     const restored = useVerificationCountdown()
     expect(restored.remaining('READER@example.com', 'register').value).toBe(15)
@@ -62,7 +62,7 @@ describe('useVerificationCountdown', () => {
     await vi.advanceTimersByTimeAsync(1900)
     await nextTick()
     expect(countdown.remaining('reader@example.com', 'register').value).toBe(0)
-    expect(sessionStorage.getItem('email-code-cooldown:register:reader@example.com')).toBeNull()
+    expect(sessionStorage.getItem('email-code-cooldown:register:reader%40example.com')).toBeNull()
 
     countdown.dispose()
   })
@@ -77,7 +77,7 @@ describe('useVerificationCountdown', () => {
     expect(setIntervalSpy).toHaveBeenCalledTimes(1)
     countdown.dispose()
     expect(clearIntervalSpy).toHaveBeenCalledTimes(1)
-    expect(sessionStorage.getItem('email-code-cooldown:register:reader@example.com')).toBeTypeOf('string')
+    expect(sessionStorage.getItem('email-code-cooldown:register:reader%40example.com')).toBeTypeOf('string')
   })
 
   it('stops its interval automatically when the owning effect scope is disposed', () => {
@@ -93,12 +93,12 @@ describe('useVerificationCountdown', () => {
 
     scope.stop()
     expect(clearIntervalSpy).toHaveBeenCalledTimes(1)
-    expect(sessionStorage.getItem('email-code-cooldown:register:reader@example.com')).toBeTypeOf('string')
+    expect(sessionStorage.getItem('email-code-cooldown:register:reader%40example.com')).toBeTypeOf('string')
     countdown?.dispose()
   })
 
   it('ignores invalid cooldown values and clears invalid persisted values', () => {
-    sessionStorage.setItem('email-code-cooldown:register:reader@example.com', 'not-a-timestamp')
+    sessionStorage.setItem('email-code-cooldown:register:reader%40example.com', 'not-a-timestamp')
     const countdown = useVerificationCountdown()
 
     expect(countdown.remaining('reader@example.com', 'register').value).toBe(0)
@@ -112,7 +112,7 @@ describe('useVerificationCountdown', () => {
   })
 
   it('clears empty persisted cooldown values instead of treating them as absent', () => {
-    const key = 'email-code-cooldown:register:reader@example.com'
+    const key = 'email-code-cooldown:register:reader%40example.com'
     sessionStorage.setItem(key, '')
     const countdown = useVerificationCountdown()
 
@@ -132,6 +132,70 @@ describe('useVerificationCountdown', () => {
 
     first.dispose()
     restored.dispose()
+  })
+
+  it('keeps a write-failed cooldown in memory when storage reads remain available', () => {
+    const storage = {
+      getItem: vi.fn(() => null),
+      setItem: vi.fn(() => {
+        throw new Error('quota exceeded')
+      }),
+      removeItem: vi.fn()
+    }
+    vi.stubGlobal('sessionStorage', storage)
+    const first = useVerificationCountdown()
+    first.start('write-failure@example.com', 'register', 20)
+
+    expect(first.remaining('write-failure@example.com', 'register').value).toBe(20)
+    const restored = useVerificationCountdown()
+    expect(restored.remaining('write-failure@example.com', 'register').value).toBe(20)
+    expect(storage.setItem).toHaveBeenCalledTimes(1)
+
+    first.dispose()
+    restored.dispose()
+  })
+
+  it('shares a pre-subscribed cooldown ref across instances without leaking its interval', async () => {
+    const setIntervalSpy = vi.spyOn(globalThis, 'setInterval')
+    const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval')
+    const second = useVerificationCountdown()
+    const secondRemaining = second.remaining('shared@example.com', 'register')
+    const first = useVerificationCountdown()
+
+    first.start('shared@example.com', 'register', 30)
+    expect(secondRemaining.value).toBe(30)
+    expect(setIntervalSpy).toHaveBeenCalledTimes(1)
+
+    second.dispose()
+    expect(clearIntervalSpy).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(1100)
+    expect(secondRemaining.value).toBe(29)
+
+    first.dispose()
+    expect(clearIntervalSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('rejects unsafe cooldown calculations before writing storage', () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem')
+    const countdown = useVerificationCountdown()
+    countdown.start('overflow@example.com', 'register', Number.MAX_VALUE)
+
+    expect(countdown.remaining('overflow@example.com', 'register').value).toBe(0)
+    expect(setItemSpy).not.toHaveBeenCalled()
+
+    countdown.dispose()
+  })
+
+  it('encodes email segments and ignores unsupported purposes at runtime', () => {
+    const countdown = useVerificationCountdown()
+    countdown.start('reader:one@example.com', 'register', 30)
+    countdown.start('reader@example.com', 'register:reset' as never, 30)
+
+    expect(sessionStorage.getItem('email-code-cooldown:register:reader%3Aone%40example.com')).toBeTypeOf('string')
+    expect(sessionStorage.length).toBe(1)
+    expect(countdown.remaining('reader@example.com', 'register:reset' as never).value).toBe(0)
+
+    countdown.dispose()
   })
 
   it('accepts and restores cooldowns longer than one day', () => {
