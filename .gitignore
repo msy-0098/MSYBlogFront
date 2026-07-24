@@ -25,6 +25,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Local binaries and release installers
+*.exe
+
 # IDE and editor
 .idea/
 .vscode/
