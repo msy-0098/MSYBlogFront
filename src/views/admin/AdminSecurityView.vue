@@ -29,8 +29,17 @@ async function banIP() {
 }
 
 async function unban(ban: AdminIPBan) {
-  await ElMessageBox.confirm(`确认解除 ${ban.ip} 的封禁吗？`, '解除封禁', { type: 'warning' })
-  try { await removeAdminBan(ban.id); ElMessage.success('已解除封禁'); await load() } catch (reason) { ElMessage.error(getFriendlyErrorMessage(reason, '解除封禁失败')) }
+  try {
+    await ElMessageBox.confirm(`确认解除 ${ban.ip} 的封禁吗？`, '解除封禁', { type: 'warning' })
+    await removeAdminBan(ban.id)
+    ElMessage.success('已解除封禁')
+    await load()
+  } catch (reason) {
+    if (reason === 'cancel' || reason === 'close') {
+      return
+    }
+    ElMessage.error(getFriendlyErrorMessage(reason, '解除封禁失败'))
+  }
 }
 </script>
 
