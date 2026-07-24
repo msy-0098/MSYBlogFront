@@ -34,4 +34,45 @@ describe('getSiteProfile', () => {
       domain: 'masenyu.top'
     })
   })
+
+  it('maps rejected HTTP responses without exposing internal server text', async () => {
+    const client = createApiClient({
+      adapter: async () => {
+        throw {
+          response: {
+            status: 500,
+            data: { code: 500, message: 'SQLITE_BUSY at /srv/blog/data.db' }
+          }
+        }
+      }
+    })
+
+    await expect(client.get('/site')).rejects.toMatchObject({
+      name: 'FriendlyApiError',
+      kind: 'server',
+      status: 500,
+      code: 500,
+      message: '服务暂时不可用，请稍后再试'
+    })
+  })
+
+  it('maps failed site envelopes through the shared error model', async () => {
+    const client = createApiClient({
+      adapter: async (config) => ({
+        data: { code: 404, message: '文章不存在', data: null },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config
+      })
+    })
+
+    await expect(getSiteProfile(client)).rejects.toMatchObject({
+      name: 'FriendlyApiError',
+      kind: 'not-found',
+      status: 404,
+      code: 404,
+      message: '请求的内容不存在或已被移除'
+    })
+  })
 })

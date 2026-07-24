@@ -172,6 +172,28 @@ describe('blog api', () => {
       ])
     )
   })
+
+  it('preserves a trusted visitor-auth error from a failed envelope', async () => {
+    const client = createApiClient({
+      adapter: async (config) => ({
+        data: { code: 401, message: '邮箱或密码错误', data: null },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config
+      })
+    })
+
+    await expect(
+      loginVisitor({ email: 'reader@example.com', password: 'wrong-password' }, client)
+    ).rejects.toMatchObject({
+      name: 'FriendlyApiError',
+      kind: 'auth',
+      status: 401,
+      code: 401,
+      message: '邮箱或密码错误'
+    })
+  })
 })
 
 function adapterFor(expectedUrl: string): AxiosAdapter {

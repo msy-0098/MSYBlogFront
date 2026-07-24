@@ -1,5 +1,6 @@
 import type { AxiosInstance } from 'axios'
 
+import { fromApiEnvelope } from '../utils/apiError'
 import { apiClient, type ApiEnvelope } from './site'
 
 export interface Taxonomy {
@@ -276,7 +277,7 @@ export async function createPostComment(
 
 function unwrap<T>(envelope: ApiEnvelope<T>): T {
   if (envelope.code !== 0) {
-    throw new Error(envelope.message || '请求失败')
+    throw fromApiEnvelope(envelope)
   }
 
   return envelope.data

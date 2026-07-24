@@ -113,9 +113,11 @@ describe('admin api', () => {
     })
 
     await expect(getAdminProfile(client)).rejects.toMatchObject({
-      response: expect.objectContaining({
-        status: 401
-      })
+      name: 'FriendlyApiError',
+      kind: 'auth',
+      status: 401,
+      code: 401,
+      message: '登录状态已失效，请重新登录'
     })
 
     expect(onUnauthorized).toHaveBeenCalledTimes(1)
@@ -141,9 +143,9 @@ describe('admin api', () => {
 
     try {
       await expect(getAdminProfile(client)).rejects.toMatchObject({
-        response: expect.objectContaining({
-          status: 401
-        })
+        name: 'FriendlyApiError',
+        kind: 'auth',
+        status: 401
       })
 
       expect(listener).toHaveBeenCalledTimes(1)
@@ -179,6 +181,46 @@ describe('admin api', () => {
 
     expect(sentPayload).toMatchObject({
       navItems: 'Home,Posts,Projects'
+    })
+  })
+
+  it('maps rejected admin responses with the shared error model', async () => {
+    const client = createAdminApiClient({
+      adapter: async () => {
+        throw {
+          response: {
+            status: 403,
+            data: { code: 403, message: 'internal permission resolver stack' }
+          }
+        }
+      }
+    })
+
+    await expect(getAdminProfile(client)).rejects.toMatchObject({
+      name: 'FriendlyApiError',
+      kind: 'permission',
+      status: 403,
+      message: '暂无权限执行此操作'
+    })
+  })
+
+  it('maps failed admin envelopes instead of exposing their message', async () => {
+    const client = createAdminApiClient({
+      adapter: async (config) => ({
+        data: { code: 409, message: 'database transaction conflict at /srv/blog', data: null },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config
+      })
+    })
+
+    await expect(getAdminProfile(client)).rejects.toMatchObject({
+      name: 'FriendlyApiError',
+      kind: 'conflict',
+      status: 409,
+      code: 409,
+      message: '当前数据已发生变化，请刷新后重试'
     })
   })
 

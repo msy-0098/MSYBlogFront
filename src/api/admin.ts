@@ -1,11 +1,10 @@
 import axios, {
-  AxiosError,
   type AxiosAdapter,
   type AxiosInstance,
-  type AxiosResponse,
   type CreateAxiosDefaults
 } from 'axios'
 
+import { fromApiEnvelope, toFriendlyApiError } from '../utils/apiError'
 import type { ApiEnvelope } from './site'
 
 export const ADMIN_UNAUTHORIZED_EVENT = 'admin:unauthorized'
@@ -269,49 +268,22 @@ export function createAdminApiClient(options: CreateAdminApiClientOptions = {}):
   client.interceptors.response.use(
     (response) => {
       if (response.status === 401 || response.data?.code === 401) {
-        notifyUnauthorized(onUnauthorized)
-        return Promise.reject(toUnauthorizedError(response))
+        handleAdminUnauthorized(onUnauthorized)
+        return Promise.reject(toFriendlyApiError({ response }))
       }
 
       return response
     },
     (error) => {
       if (error.response?.status === 401 || error.response?.data?.code === 401) {
-        notifyUnauthorized(onUnauthorized)
-        return Promise.reject(toUnauthorizedError(error.response))
-      }
-      if (error.response?.data && typeof error.response.data.message === 'string' && error.response.data.message.trim() !== '') {
-        return Promise.reject(new Error(error.response.data.message))
-      }
-      if (error.response?.status === 429) {
-        return Promise.reject(new Error('请求过于频繁，请稍后再试哦'))
-      }
-      if (error.response?.status === 403) {
-        return Promise.reject(new Error('暂无权限执行此操作哦'))
-      }
-      if (error.response?.status === 404) {
-        return Promise.reject(new Error('请求的资源不存在'))
-      }
-      if (error.response?.status >= 500) {
-        return Promise.reject(new Error('服务器响应异常，请稍后再试哦'))
-      }
-      if (error.code === 'ECONNABORTED' || !error.response) {
-        return Promise.reject(new Error('网络开小差了，请检查网络连接哦'))
+        handleAdminUnauthorized(onUnauthorized)
       }
 
-      return Promise.reject(error)
+      return Promise.reject(toFriendlyApiError(error))
     }
   )
 
   return client
-}
-
-function notifyUnauthorized(onUnauthorized?: () => void) {
-  onUnauthorized?.()
-
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event(ADMIN_UNAUTHORIZED_EVENT))
-  }
 }
 
 function clearStoredAdminSession() {
@@ -326,8 +298,13 @@ function clearStoredAdminSession() {
   }
 }
 
-export function handleAdminUnauthorized() {
-  notifyUnauthorized(clearStoredAdminSession)
+export function handleAdminUnauthorized(onUnauthorized?: () => void) {
+  clearStoredAdminSession()
+  onUnauthorized?.()
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(ADMIN_UNAUTHORIZED_EVENT))
+  }
 }
 
 export const adminApiClient = createAdminApiClient({
@@ -335,8 +312,7 @@ export const adminApiClient = createAdminApiClient({
   getToken: () => {
     if (typeof sessionStorage === 'undefined') return null
     return sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token')
-  },
-  onUnauthorized: clearStoredAdminSession
+  }
 })
 
 export async function loginAdmin(
@@ -613,18 +589,8 @@ export async function deleteAdminComment(
 
 export function unwrap<T>(envelope: ApiEnvelope<T>): T {
   if (envelope.code !== 0) {
-    throw new Error(envelope.message || '请求失败')
+    throw fromApiEnvelope(envelope)
   }
 
   return envelope.data
-}
-
-function toUnauthorizedError(response: AxiosResponse): AxiosError {
-  return new AxiosError(
-    response.data?.message || 'unauthorized',
-    AxiosError.ERR_BAD_REQUEST,
-    response.config,
-    response.request,
-    response
-  )
 }
