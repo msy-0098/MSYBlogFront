@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { ADMIN_UNAUTHORIZED_EVENT } from '../api/admin'
+import { FriendlyApiError } from '../utils/apiError'
 import { createAdminAIStreamClient, createSSEParser } from './useAiStream'
 
 const encoder = new TextEncoder()
@@ -66,6 +67,17 @@ describe('admin AI SSE stream', () => {
     expect(onAbort).toHaveBeenCalledOnce()
     expect(onError).not.toHaveBeenCalled()
   })
+  it('treats a fetch AbortError as an aborted stream without an error callback', async () => {
+    const onAbort = vi.fn()
+    const onError = vi.fn()
+    const abortError = new Error('request aborted')
+    abortError.name = 'AbortError'
+    const client = createAdminAIStreamClient({ fetchImpl: vi.fn().mockRejectedValue(abortError) })
+
+    await expect(client.stream(7, '中止错误', { onAbort, onError })).resolves.toEqual({ status: 'aborted' })
+    expect(onAbort).toHaveBeenCalledOnce()
+    expect(onError).not.toHaveBeenCalled()
+  })
   it('surfaces a server error event as a failed stream', async () => {
     const onError = vi.fn()
     const client = createAdminAIStreamClient({
@@ -92,18 +104,54 @@ describe('admin AI SSE stream', () => {
       expect(localStorage.getItem('admin_token')).toBeNull()
       expect(localStorage.getItem('admin_user')).toBeNull()
       expect(listener).toHaveBeenCalledOnce()
-      expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'AI 请求失败（401）' }))
+      expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: '登录状态已失效，请重新登录' }))
     } finally {
       window.removeEventListener(ADMIN_UNAUTHORIZED_EVENT, listener)
     }
   })
 
-  it('reports non-2xx responses as failed stream requests', async () => {
+  it('maps a provider rate-limit response to a safe retryable error', async () => {
     const onError = vi.fn()
-    const client = createAdminAIStreamClient({ fetchImpl: vi.fn().mockResolvedValue(new Response(null, { status: 503 })) })
+    const client = createAdminAIStreamClient({
+      fetchImpl: vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ code: 429, message: 'provider quota exceeded', data: { retryAfter: 12 } }), {
+          status: 429,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+    })
+
+    await expect(client.stream(7, '限流测试', { onError })).resolves.toEqual({ status: 'failed' })
+
+    expect(onError).toHaveBeenCalledOnce()
+    const error = onError.mock.calls[0][0]
+    expect(error).toBeInstanceOf(FriendlyApiError)
+    expect(error).toMatchObject({ message: '操作过于频繁，请稍后再试', kind: 'rate-limit', retryAfter: 12 })
+    expect(error.message).not.toContain('provider quota exceeded')
+    expect(error.message).not.toContain('429')
+  })
+
+  it('maps a non-JSON 5xx response to the shared safe server error', async () => {
+    const onError = vi.fn()
+    const client = createAdminAIStreamClient({ fetchImpl: vi.fn().mockResolvedValue(new Response('<html>upstream failure</html>', { status: 503 })) })
 
     await expect(client.stream(7, '服务状态', { onError })).resolves.toEqual({ status: 'failed' })
-    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'AI 请求失败（503）' }))
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({
+      message: '服务暂时不可用，请稍后再试',
+      kind: 'server',
+      status: 503
+    }))
+  })
+
+  it('maps rejected fetch requests to a shared network error', async () => {
+    const onError = vi.fn()
+    const client = createAdminAIStreamClient({ fetchImpl: vi.fn().mockRejectedValue(new TypeError('Failed to fetch')) })
+
+    await expect(client.stream(7, '网络错误', { onError })).resolves.toEqual({ status: 'failed' })
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({
+      message: '网络连接失败，请检查网络后重试',
+      kind: 'network'
+    }))
   })
 
   it('reports a response that closes without done as an interrupted stream', async () => {

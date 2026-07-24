@@ -1,4 +1,5 @@
 import { handleAdminUnauthorized } from '../api/admin'
+import { fromApiEnvelope, toFriendlyApiError } from '../utils/apiError'
 
 export type AdminAIStreamEventName = 'meta' | 'delta' | 'done' | 'error'
 
@@ -73,7 +74,7 @@ export function createAdminAIStreamClient(options: AdminAIStreamClientOptions = 
 
         if (response.status === 401) handleAdminUnauthorized()
         if (!response.ok) {
-          throw new Error(`AI 请求失败（${response.status}）`)
+          throw await toResponseError(response)
         }
         if (!response.headers.get('content-type')?.toLowerCase().includes('text/event-stream')) {
           throw new Error('AI 服务没有返回流式响应')
@@ -127,7 +128,7 @@ export function createAdminAIStreamClient(options: AdminAIStreamClientOptions = 
           return { status: 'aborted' as const }
         }
 
-        handlers.onError?.(toError(error, 'AI 请求失败'))
+        handlers.onError?.(toFriendlyApiError(error))
         return { status: 'failed' as const }
       } finally {
         if (activeController === controller) activeController = null
@@ -174,10 +175,22 @@ function readEventMessage(data: Record<string, unknown>, fallback: string): stri
   return typeof data.message === 'string' && data.message.trim() ? data.message : fallback
 }
 
-function toError(error: unknown, fallback: string): Error {
-  return error instanceof Error ? error : new Error(fallback)
+async function toResponseError(response: Response) {
+  const payload = await response.clone().json().catch(() => null)
+  const envelope = isRecord(payload)
+    ? { code: typeof payload.code === 'number' ? payload.code : response.status, message: payload.message, data: payload.data }
+    : { code: response.status }
+
+  return fromApiEnvelope(envelope, response.status)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
 }
 
 function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === 'AbortError'
+  return (
+    (typeof DOMException !== 'undefined' && error instanceof DOMException && error.name === 'AbortError') ||
+    (typeof error === 'object' && error !== null && (error as { name?: unknown }).name === 'AbortError')
+  )
 }
