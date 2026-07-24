@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 
 import {
   createPostComment,
@@ -42,6 +42,8 @@ const verificationCountdown = useVerificationCountdown()
 const codeCountdown = ref(0)
 let activeVerification: { email: string; purpose: VerificationPurpose } | null = null
 let stopCountdownWatch: (() => void) | null = null
+let authRevision = 0
+let activeSendRequest = 0
 
 const isVisitorLoggedIn = computed(() => Boolean(visitorSession.value && visitorUser.value))
 const authTitle = computed(() => {
@@ -66,7 +68,7 @@ watch(
   { immediate: true }
 )
 
-watch([authPanelOpen, () => authForm.value.email, verificationPurpose], syncVerificationSubscription, { immediate: true })
+watch([authPanelOpen, () => authForm.value.email, authMode], syncVerificationSubscription, { immediate: true })
 
 onUnmounted(releaseActiveVerification)
 
@@ -101,6 +103,7 @@ function closeAuthPanel() {
 }
 
 function syncVerificationSubscription() {
+  invalidateAuthContext()
   releaseActiveVerification()
   if (!authPanelOpen.value || !authForm.value.email.trim()) return
 
@@ -111,6 +114,14 @@ function syncVerificationSubscription() {
   stopCountdownWatch = watch(remaining, (value) => {
     codeCountdown.value = value
   }, { immediate: true })
+}
+
+function invalidateAuthContext() {
+  authRevision++
+  activeSendRequest++
+  codeSending.value = false
+  authNotice.value = ''
+  authError.value = ''
 }
 
 function releaseActiveVerification() {
@@ -133,27 +144,50 @@ async function sendCode() {
     return
   }
 
+  const email = authForm.value.email
+  const purpose = verificationPurpose.value
+  const revision = authRevision
+  const requestId = ++activeSendRequest
   codeSending.value = true
   authNotice.value = ''
   authError.value = ''
 
   try {
-    const result = await sendVisitorEmailCode(authForm.value.email, verificationPurpose.value)
+    const result = await sendVisitorEmailCode(email, purpose)
+    if (!isCurrentAuthRequest(requestId, revision, email, purpose)) return
     if (!result.sent || !Number.isFinite(result.cooldownSeconds) || result.cooldownSeconds <= 0) {
       authError.value = '验证码发送失败，请稍后再试哦'
       return
     }
 
-    verificationCountdown.start(authForm.value.email, verificationPurpose.value, result.cooldownSeconds)
+    verificationCountdown.start(email, purpose, result.cooldownSeconds)
     authNotice.value = '验证码已发送，请查收邮箱哦'
   } catch (err) {
+    if (!isCurrentAuthRequest(requestId, revision, email, purpose)) return
     if (err instanceof FriendlyApiError && err.kind === 'rate-limit' && err.retryAfter && err.retryAfter > 0) {
-      verificationCountdown.start(authForm.value.email, verificationPurpose.value, err.retryAfter)
+      verificationCountdown.start(email, purpose, err.retryAfter)
     }
     authError.value = getFriendlyErrorMessage(err, '验证码发送失败，请稍后再试哦')
   } finally {
-    codeSending.value = false
+    if (requestId === activeSendRequest) {
+      codeSending.value = false
+    }
   }
+}
+
+function isCurrentAuthRequest(
+  requestId: number,
+  revision: number,
+  email: string,
+  purpose: VerificationPurpose
+) {
+  return (
+    requestId === activeSendRequest &&
+    revision === authRevision &&
+    authPanelOpen.value &&
+    authForm.value.email === email &&
+    verificationPurpose.value === purpose
+  )
 }
 
 async function submitAuth() {
@@ -168,8 +202,9 @@ async function submitAuth() {
         code: authForm.value.code,
         newPassword: authForm.value.password
       })
-      authNotice.value = '密码已重置，请用新密码登录'
       authMode.value = 'login'
+      await nextTick()
+      authNotice.value = '密码已重置，请用新密码登录'
       return
     }
 

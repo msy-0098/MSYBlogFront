@@ -80,7 +80,7 @@ export function useVerificationCountdown(): VerificationCountdown {
     if (!state) return
 
     state.subscribers.delete(subscriber)
-    if (state.subscribers.size === 0 && syncState(key) === 0) {
+    if (state.subscribers.size === 0) {
       sharedStates.delete(key)
     }
     stopIntervalIfIdle()

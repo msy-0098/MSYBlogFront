@@ -7,6 +7,16 @@ import PostComments from './PostComments.vue'
 const getPostComments = vi.fn()
 const sendVisitorEmailCode = vi.fn()
 
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise
+    reject = rejectPromise
+  })
+  return { promise, resolve, reject }
+}
+
 vi.mock('../../api/blog', () => ({
   createPostComment: vi.fn(),
   getPostComments: (...args: unknown[]) => getPostComments(...args),
@@ -102,5 +112,93 @@ describe('PostComments', () => {
 
     expect(wrapper.text()).toContain('评论加载失败')
     expect(wrapper.text()).toContain('验证码已发送')
+  })
+
+  it('ignores a successful code response after the authentication dialog closes', async () => {
+    const pending = deferred<{ sent: boolean; cooldownSeconds: number; expiresIn: number }>()
+    sendVisitorEmailCode.mockReturnValue(pending.promise)
+    const wrapper = mount(PostComments, { props: { slug: 'first-post' } })
+    await flushPromises()
+    await wrapper.get('[data-test="open-comment-auth"]').trigger('click')
+    await wrapper.get('[data-test="visitor-email"]').setValue('closed@example.com')
+    await wrapper.get('[data-test="send-code"]').trigger('click')
+    await wrapper.get('[data-test="close-auth-panel"]').trigger('click')
+    pending.resolve({ sent: true, cooldownSeconds: 60, expiresIn: 300 })
+    await flushPromises()
+
+    await wrapper.get('[data-test="open-comment-auth"]').trigger('click')
+    expect(wrapper.get('[data-test="send-code"]').text()).toBe('发送验证码')
+    expect(wrapper.text()).not.toContain('验证码已发送')
+  })
+
+  it('ignores a successful code response after the email changes', async () => {
+    const pending = deferred<{ sent: boolean; cooldownSeconds: number; expiresIn: number }>()
+    sendVisitorEmailCode.mockReturnValue(pending.promise)
+    const wrapper = mount(PostComments, { props: { slug: 'first-post' } })
+    await flushPromises()
+    await wrapper.get('[data-test="open-comment-auth"]').trigger('click')
+    await wrapper.get('[data-test="visitor-email"]').setValue('first@example.com')
+    await wrapper.get('[data-test="send-code"]').trigger('click')
+    await wrapper.get('[data-test="visitor-email"]').setValue('second@example.com')
+    pending.resolve({ sent: true, cooldownSeconds: 60, expiresIn: 300 })
+    await flushPromises()
+
+    expect(wrapper.get('[data-test="send-code"]').text()).toBe('发送验证码')
+    expect(wrapper.text()).not.toContain('验证码已发送')
+  })
+
+  it('ignores a successful register response after switching to reset', async () => {
+    const pending = deferred<{ sent: boolean; cooldownSeconds: number; expiresIn: number }>()
+    sendVisitorEmailCode.mockReturnValue(pending.promise)
+    const wrapper = mount(PostComments, { props: { slug: 'first-post' } })
+    await flushPromises()
+    await wrapper.get('[data-test="open-comment-auth"]').trigger('click')
+    await wrapper.get('[data-test="visitor-email"]').setValue('reader@example.com')
+    await wrapper.get('[data-test="send-code"]').trigger('click')
+    await wrapper.get('[data-test="switch-visitor-auth-mode"]').trigger('click')
+    await wrapper.get('[data-test="open-visitor-reset"]').trigger('click')
+    pending.resolve({ sent: true, cooldownSeconds: 60, expiresIn: 300 })
+    await flushPromises()
+
+    expect(wrapper.get('[data-test="send-code"]').text()).toBe('发送验证码')
+    expect(wrapper.text()).not.toContain('验证码已发送')
+  })
+
+  it('ignores a stale rate-limit error after the email changes', async () => {
+    const pending = deferred<never>()
+    sendVisitorEmailCode.mockReturnValue(pending.promise)
+    const wrapper = mount(PostComments, { props: { slug: 'first-post' } })
+    await flushPromises()
+    await wrapper.get('[data-test="open-comment-auth"]').trigger('click')
+    await wrapper.get('[data-test="visitor-email"]').setValue('first@example.com')
+    await wrapper.get('[data-test="send-code"]').trigger('click')
+    await wrapper.get('[data-test="visitor-email"]').setValue('second@example.com')
+    pending.reject(new FriendlyApiError('操作过于频繁，请稍后再试', 'rate-limit', 429, 429, 37))
+    await flushPromises()
+
+    expect(wrapper.get('[data-test="send-code"]').text()).toBe('发送验证码')
+    expect(wrapper.text()).not.toContain('操作过于频繁')
+  })
+
+  it('keeps a newer code request loading when an older request settles', async () => {
+    const first = deferred<{ sent: boolean; cooldownSeconds: number; expiresIn: number }>()
+    const second = deferred<{ sent: boolean; cooldownSeconds: number; expiresIn: number }>()
+    sendVisitorEmailCode.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+    const wrapper = mount(PostComments, { props: { slug: 'first-post' } })
+    await flushPromises()
+    await wrapper.get('[data-test="open-comment-auth"]').trigger('click')
+    await wrapper.get('[data-test="visitor-email"]').setValue('first@example.com')
+    await wrapper.get('[data-test="send-code"]').trigger('click')
+    await wrapper.get('[data-test="visitor-email"]').setValue('second@example.com')
+    await wrapper.get('[data-test="send-code"]').trigger('click')
+    expect(wrapper.get('[data-test="send-code"]').text()).toBe('发送中...')
+
+    first.resolve({ sent: true, cooldownSeconds: 60, expiresIn: 300 })
+    await flushPromises()
+    expect(wrapper.get('[data-test="send-code"]').text()).toBe('发送中...')
+
+    second.resolve({ sent: true, cooldownSeconds: 60, expiresIn: 300 })
+    await flushPromises()
+    expect(wrapper.get('[data-test="send-code"]').text()).toBe('60s 后重发')
   })
 })

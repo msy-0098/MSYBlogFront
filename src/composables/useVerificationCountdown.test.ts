@@ -126,9 +126,13 @@ describe('useVerificationCountdown', () => {
     vi.stubGlobal('sessionStorage', undefined)
     const first = useVerificationCountdown()
     first.start('memory@example.com', 'register', 20)
+    const firstRef = first.remaining('memory@example.com', 'register')
+    first.release('memory@example.com', 'register')
 
     const restored = useVerificationCountdown()
-    expect(restored.remaining('memory@example.com', 'register').value).toBe(20)
+    const restoredRef = restored.remaining('memory@example.com', 'register')
+    expect(restoredRef.value).toBe(20)
+    expect(restoredRef).not.toBe(firstRef)
 
     first.dispose()
     restored.dispose()
@@ -237,12 +241,15 @@ describe('useVerificationCountdown', () => {
   it('keeps an active cooldown persisted when its subscription is released', () => {
     const countdown = useVerificationCountdown()
     countdown.start('persisted@example.com', 'register', 20)
+    const firstRef = countdown.remaining('persisted@example.com', 'register')
 
     countdown.release('persisted@example.com', 'register')
     const restored = useVerificationCountdown()
+    const restoredRef = restored.remaining('persisted@example.com', 'register')
 
     expect(sessionStorage.getItem('email-code-cooldown:register:persisted%40example.com')).toBeTypeOf('string')
-    expect(restored.remaining('persisted@example.com', 'register').value).toBe(20)
+    expect(restoredRef.value).toBe(20)
+    expect(restoredRef).not.toBe(firstRef)
     countdown.dispose()
     restored.dispose()
   })
