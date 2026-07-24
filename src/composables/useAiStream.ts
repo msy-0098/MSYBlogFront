@@ -61,7 +61,11 @@ export function createAdminAIStreamClient(options: AdminAIStreamClientOptions = 
       const notifyError = (error: Error) => {
         if (errorNotified) return
         errorNotified = true
-        handlers.onError?.(error)
+        try {
+          handlers.onError?.(error)
+        } catch {
+          // Consumer callbacks cannot interrupt stream cleanup.
+        }
       }
 
       try {

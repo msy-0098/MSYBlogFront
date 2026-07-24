@@ -281,6 +281,24 @@ describe('admin AI SSE stream', () => {
       release()
     }
   })
+  it('cancels an open error stream when onError throws', async () => {
+    const { body, cancel, release } = createOpenStream('event: error\ndata: {"code":500,"message":"provider failure"}\n\n')
+    const onError = vi.fn(() => {
+      throw new Error('consumer callback failure')
+    })
+    const client = createAdminAIStreamClient({
+      fetchImpl: vi.fn().mockResolvedValue(new Response(body, { headers: { 'Content-Type': 'text/event-stream' } }))
+    })
+    const result = client.stream(7, '开放流回调错误', { onError })
+
+    try {
+      await expect(settlesImmediately(result)).resolves.toEqual({ status: 'failed' })
+      expect(onError).toHaveBeenCalledOnce()
+      expect(cancel).toHaveBeenCalledOnce()
+    } finally {
+      release()
+    }
+  })
 })
 function createOpenStream(frame: string) {
   let releasePull: () => void = () => undefined
