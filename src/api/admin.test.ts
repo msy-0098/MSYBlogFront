@@ -154,6 +154,50 @@ describe('admin api', () => {
     }
   })
 
+  it('handles a rejected 401 exactly once before returning a friendly error', async () => {
+    const onUnauthorized = vi.fn()
+    const listener = vi.fn()
+    window.addEventListener(ADMIN_UNAUTHORIZED_EVENT, listener)
+
+    const client = createAdminApiClient({
+      onUnauthorized,
+      adapter: async () => {
+        throw {
+          response: {
+            status: 401,
+            data: { code: 401, message: 'unauthorized', data: null }
+          }
+        }
+      }
+    })
+
+    try {
+      await expect(getAdminProfile(client)).rejects.toMatchObject({
+        name: 'FriendlyApiError',
+        kind: 'auth',
+        status: 401,
+        code: 401,
+        message: '登录状态已失效，请重新登录'
+      })
+      expect(onUnauthorized).toHaveBeenCalledTimes(1)
+      expect(listener).toHaveBeenCalledTimes(1)
+    } finally {
+      window.removeEventListener(ADMIN_UNAUTHORIZED_EVENT, listener)
+    }
+  })
+
+  it.each([null, 'adapter rejected with a string'])('safely maps a non-object rejection: %s', async (reason) => {
+    const client = createAdminApiClient({
+      adapter: async () => Promise.reject(reason)
+    })
+
+    await expect(getAdminProfile(client)).rejects.toMatchObject({
+      name: 'FriendlyApiError',
+      kind: 'unknown',
+      message: '操作失败，请稍后重试'
+    })
+  })
+
   it('sends navigation items when updating site settings', async () => {
     let sentPayload: unknown
     const client = createAdminApiClient({

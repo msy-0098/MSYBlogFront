@@ -165,11 +165,13 @@ function isNetworkError(reason: unknown, error: Record<string, unknown> | undefi
     return false
   }
 
+  if (error.code === 'ERR_CANCELED' || error.name === 'CanceledError' || error.__CANCEL__ === true) {
+    return false
+  }
+
   return (
-    Object.prototype.hasOwnProperty.call(error, 'response') ||
-    error.isAxiosError === true ||
-    error.request !== undefined ||
     error.code === 'ERR_NETWORK' ||
+    error.request !== undefined ||
     error.message === 'Network Error'
   )
 }

@@ -42,8 +42,19 @@ describe('friendly API errors', () => {
       message: '网络连接失败，请检查网络后重试'
     })
     expect(toFriendlyApiError({ response: undefined })).toMatchObject({
-      kind: 'network',
-      message: '网络连接失败，请检查网络后重试'
+      kind: 'unknown',
+      message: '操作失败，请稍后重试'
+    })
+    expect(
+      toFriendlyApiError({
+        code: 'ERR_CANCELED',
+        isAxiosError: true,
+        message: 'canceled',
+        request: {}
+      })
+    ).toMatchObject({
+      kind: 'unknown',
+      message: '操作失败，请稍后重试'
     })
   })
 

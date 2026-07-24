@@ -274,8 +274,12 @@ export function createAdminApiClient(options: CreateAdminApiClientOptions = {}):
 
       return response
     },
-    (error) => {
-      if (error.response?.status === 401 || error.response?.data?.code === 401) {
+    (error: unknown) => {
+      const errorRecord = isRecord(error) ? error : undefined
+      const response = isRecord(errorRecord?.response) ? errorRecord.response : undefined
+      const responseData = isRecord(response?.data) ? response.data : undefined
+
+      if (response?.status === 401 || responseData?.code === 401) {
         handleAdminUnauthorized(onUnauthorized)
       }
 
@@ -284,6 +288,10 @@ export function createAdminApiClient(options: CreateAdminApiClientOptions = {}):
   )
 
   return client
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
 }
 
 function clearStoredAdminSession() {
