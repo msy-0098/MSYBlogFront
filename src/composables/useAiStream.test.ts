@@ -78,16 +78,68 @@ describe('admin AI SSE stream', () => {
     expect(onAbort).toHaveBeenCalledOnce()
     expect(onError).not.toHaveBeenCalled()
   })
-  it('surfaces a server error event as a failed stream', async () => {
+  it('maps untrusted SSE provider details to a safe friendly error', async () => {
     const onError = vi.fn()
     const client = createAdminAIStreamClient({
       fetchImpl: vi.fn().mockResolvedValue(
-        new Response('event: error\ndata: {"message":"模型暂不可用"}\n\n', { headers: { 'Content-Type': 'text/event-stream' } })
+        new Response('event: error\ndata: {"code":500,"message":"provider failure: BLOG_AI_API_KEY=secret"}\n\n', { headers: { 'Content-Type': 'text/event-stream' } })
       )
     })
 
     await expect(client.stream(7, '测试错误', { onError })).resolves.toEqual({ status: 'failed' })
-    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: '模型暂不可用' }))
+    const error = onError.mock.calls[0][0]
+    expect(error).toBeInstanceOf(FriendlyApiError)
+    expect(error).toMatchObject({ message: '服务暂时不可用，请稍后再试', kind: 'server', status: 500 })
+    expect(error.message).not.toContain('provider failure')
+    expect(error.message).not.toContain('BLOG_AI_API_KEY')
+  })
+
+  it('preserves an allowlisted SSE business message', async () => {
+    const onError = vi.fn()
+    const client = createAdminAIStreamClient({
+      fetchImpl: vi.fn().mockResolvedValue(
+        new Response('event: error\ndata: {"code":400,"message":"验证码错误或已过期"}\n\n', { headers: { 'Content-Type': 'text/event-stream' } })
+      )
+    })
+
+    await expect(client.stream(7, '可信业务错误', { onError })).resolves.toEqual({ status: 'failed' })
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({
+      message: '验证码错误或已过期',
+      kind: 'validation',
+      status: 400,
+      code: 400
+    }))
+  })
+
+  it('preserves retryAfter from an SSE rate-limit envelope without leaking provider details', async () => {
+    const onError = vi.fn()
+    const client = createAdminAIStreamClient({
+      fetchImpl: vi.fn().mockResolvedValue(
+        new Response('event: error\ndata: {"code":429,"message":"provider quota exceeded","data":{"retryAfter":12}}\n\n', { headers: { 'Content-Type': 'text/event-stream' } })
+      )
+    })
+
+    await expect(client.stream(7, '流式限流', { onError })).resolves.toEqual({ status: 'failed' })
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({
+      message: '操作过于频繁，请稍后再试',
+      kind: 'rate-limit',
+      retryAfter: 12
+    }))
+    expect(onError.mock.calls[0][0].message).not.toContain('provider quota exceeded')
+  })
+
+  it('notifies a throwing onError callback at most once for an SSE failure', async () => {
+    const onError = vi.fn(() => {
+      throw new Error('consumer callback failure')
+    })
+    const client = createAdminAIStreamClient({
+      fetchImpl: vi.fn().mockResolvedValue(
+        new Response('event: error\ndata: {"code":500,"message":"provider failure"}\n\n', { headers: { 'Content-Type': 'text/event-stream' } })
+      )
+    })
+
+    await expect(client.stream(7, '回调错误', { onError })).resolves.toEqual({ status: 'failed' })
+    expect(onError).toHaveBeenCalledOnce()
   })
   it('uses the shared admin unauthorized path when fetch receives 401', async () => {
     localStorage.setItem('admin_token', 'expired-token')
@@ -208,7 +260,7 @@ describe('admin AI SSE stream', () => {
   })
 
   it('treats error as terminal without waiting for an open stream to close', async () => {
-    const { body, controller, cancel, release } = createOpenStream('event: error\ndata: {"message":"模型异常"}\n\n')
+    const { body, controller, cancel, release } = createOpenStream('event: error\ndata: {"code":500,"message":"模型异常"}\n\n')
     const onError = vi.fn()
     const onDelta = vi.fn()
     const client = createAdminAIStreamClient({
@@ -218,7 +270,10 @@ describe('admin AI SSE stream', () => {
 
     try {
       await expect(settlesImmediately(result)).resolves.toEqual({ status: 'failed' })
-      expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: '模型异常' }))
+      expect(onError).toHaveBeenCalledWith(expect.objectContaining({
+        message: '服务暂时不可用，请稍后再试',
+        kind: 'server'
+      }))
       expect(cancel).toHaveBeenCalledOnce()
       expect(() => controller.enqueue(encoder.encode('event: delta\ndata: {"content":"不应回调"}\n\n'))).toThrow()
       expect(onDelta).not.toHaveBeenCalled()

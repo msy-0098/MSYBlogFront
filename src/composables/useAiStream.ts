@@ -56,6 +56,13 @@ export function createAdminAIStreamClient(options: AdminAIStreamClientOptions = 
       const controller = new AbortController()
       activeController?.abort()
       activeController = controller
+      let errorNotified = false
+
+      const notifyError = (error: Error) => {
+        if (errorNotified) return
+        errorNotified = true
+        handlers.onError?.(error)
+      }
 
       try {
         const token = getToken()
@@ -96,7 +103,7 @@ export function createAdminAIStreamClient(options: AdminAIStreamClientOptions = 
               return 'completed'
             }
             if (item.event === 'error') {
-              handlers.onError?.(new Error(readEventMessage(item.data, 'AI 生成失败')))
+              notifyError(toEventError(item.data))
               return 'failed'
             }
           }
@@ -120,7 +127,7 @@ export function createAdminAIStreamClient(options: AdminAIStreamClientOptions = 
         if (bufferedTerminal) return settleProtocolTerminal(bufferedTerminal)
 
         const error = new Error('AI 响应在完成前中断')
-        handlers.onError?.(error)
+        notifyError(error)
         return { status: 'failed' as const }
       } catch (error) {
         if (controller.signal.aborted || isAbortError(error)) {
@@ -128,7 +135,7 @@ export function createAdminAIStreamClient(options: AdminAIStreamClientOptions = 
           return { status: 'aborted' as const }
         }
 
-        handlers.onError?.(toFriendlyApiError(error))
+        notifyError(toFriendlyApiError(error))
         return { status: 'failed' as const }
       } finally {
         if (activeController === controller) activeController = null
@@ -171,17 +178,19 @@ function readAdminToken(): string | null {
   return typeof localStorage === 'undefined' ? null : localStorage.getItem('admin_token')
 }
 
-function readEventMessage(data: Record<string, unknown>, fallback: string): string {
-  return typeof data.message === 'string' && data.message.trim() ? data.message : fallback
-}
-
 async function toResponseError(response: Response) {
   const payload = await response.clone().json().catch(() => null)
-  const envelope = isRecord(payload)
-    ? { code: typeof payload.code === 'number' ? payload.code : response.status, message: payload.message, data: payload.data }
-    : { code: response.status }
+  return fromApiEnvelope(toApiErrorEnvelope(payload, response.status), response.status)
+}
 
-  return fromApiEnvelope(envelope, response.status)
+function toEventError(data: Record<string, unknown>) {
+  return fromApiEnvelope(toApiErrorEnvelope(data, 500))
+}
+
+function toApiErrorEnvelope(payload: unknown, fallbackCode: number) {
+  return isRecord(payload)
+    ? { code: typeof payload.code === 'number' ? payload.code : fallbackCode, message: payload.message, data: payload.data }
+    : { code: fallbackCode }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
