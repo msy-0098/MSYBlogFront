@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import {
   createPostComment,
@@ -12,6 +12,8 @@ import {
   type PostComment,
   type VisitorUser
 } from '../../api/blog'
+import { useVerificationCountdown, type VerificationPurpose } from '../../composables/useVerificationCountdown'
+import { FriendlyApiError, getFriendlyErrorMessage } from '../../utils/apiError'
 
 const props = defineProps<{
   slug: string
@@ -20,14 +22,14 @@ const props = defineProps<{
 const comments = ref<PostComment[]>([])
 const commentsLoading = ref(false)
 const commentError = ref('')
+const authNotice = ref('')
+const authError = ref('')
 const commentContent = ref('')
 const commentSubmitting = ref(false)
 const authPanelOpen = ref(false)
 const authMode = ref<'login' | 'register' | 'reset'>('login')
 const authLoading = ref(false)
 const codeSending = ref(false)
-const codeCountdown = ref(0)
-let codeTimer: ReturnType<typeof setInterval> | null = null
 const authForm = ref({
   email: '',
   nickname: '',
@@ -36,6 +38,7 @@ const authForm = ref({
 })
 const visitorSession = ref(sessionStorage.getItem('visitor_session') === '1')
 const visitorUser = ref<VisitorUser | null>(readVisitorUser())
+const verificationCountdown = useVerificationCountdown()
 
 const isVisitorLoggedIn = computed(() => Boolean(visitorSession.value && visitorUser.value))
 const authTitle = computed(() => {
@@ -49,6 +52,8 @@ const authSubmitLabel = computed(() => {
   if (authMode.value === 'reset') return '确认重置'
   return '登录'
 })
+const verificationPurpose = computed<VerificationPurpose>(() => (authMode.value === 'reset' ? 'reset' : 'register'))
+const codeCountdown = computed(() => verificationCountdown.remaining(authForm.value.email, verificationPurpose.value).value)
 
 watch(
   () => props.slug,
@@ -80,6 +85,8 @@ async function loadComments() {
 
 function openAuthPanel(mode: 'login' | 'register' | 'reset' = 'login') {
   authMode.value = mode
+  authNotice.value = ''
+  authError.value = ''
   authPanelOpen.value = true
 }
 
@@ -87,51 +94,34 @@ function closeAuthPanel() {
   authPanelOpen.value = false
 }
 
-function startCodeCountdown(duration = 60) {
-  codeCountdown.value = duration
-  if (codeTimer) {
-    clearInterval(codeTimer)
-  }
-  codeTimer = setInterval(() => {
-    if (codeCountdown.value > 1) {
-      codeCountdown.value--
-    } else {
-      codeCountdown.value = 0
-      if (codeTimer) {
-        clearInterval(codeTimer)
-        codeTimer = null
-      }
-    }
-  }, 1000)
-}
-
-onUnmounted(() => {
-  if (codeTimer) {
-    clearInterval(codeTimer)
-    codeTimer = null
-  }
-})
-
 async function sendCode() {
   if (codeSending.value || codeCountdown.value > 0) {
     return
   }
 
   if (!authForm.value.email) {
-    commentError.value = '请先填写邮箱呀'
+    authError.value = '请先填写邮箱呀'
     return
   }
 
   codeSending.value = true
-  commentError.value = ''
+  authNotice.value = ''
+  authError.value = ''
 
   try {
-    const purpose = authMode.value === 'reset' ? 'reset' : 'register'
-    await sendVisitorEmailCode(authForm.value.email, purpose)
-    commentError.value = '验证码已发送，请查收邮箱哦'
-    startCodeCountdown(60)
+    const result = await sendVisitorEmailCode(authForm.value.email, verificationPurpose.value)
+    if (!result.sent || !Number.isFinite(result.cooldownSeconds) || result.cooldownSeconds <= 0) {
+      authError.value = '验证码发送失败，请稍后再试哦'
+      return
+    }
+
+    verificationCountdown.start(authForm.value.email, verificationPurpose.value, result.cooldownSeconds)
+    authNotice.value = '验证码已发送，请查收邮箱哦'
   } catch (err) {
-    commentError.value = err instanceof Error ? err.message : '验证码发送失败'
+    if (err instanceof FriendlyApiError && err.kind === 'rate-limit' && err.retryAfter && err.retryAfter > 0) {
+      verificationCountdown.start(authForm.value.email, verificationPurpose.value, err.retryAfter)
+    }
+    authError.value = getFriendlyErrorMessage(err, '验证码发送失败，请稍后再试哦')
   } finally {
     codeSending.value = false
   }
@@ -139,7 +129,8 @@ async function sendCode() {
 
 async function submitAuth() {
   authLoading.value = true
-  commentError.value = ''
+  authNotice.value = ''
+  authError.value = ''
 
   try {
     if (authMode.value === 'reset') {
@@ -148,7 +139,7 @@ async function submitAuth() {
         code: authForm.value.code,
         newPassword: authForm.value.password
       })
-      commentError.value = '密码已重置，请用新密码登录'
+      authNotice.value = '密码已重置，请用新密码登录'
       authMode.value = 'login'
       return
     }
@@ -161,7 +152,7 @@ async function submitAuth() {
     setVisitorSession(result.user)
     closeAuthPanel()
   } catch (err) {
-    commentError.value = err instanceof Error ? err.message : '登录注册失败'
+    authError.value = getFriendlyErrorMessage(err, '登录或注册失败，请稍后再试哦')
   } finally {
     authLoading.value = false
   }
@@ -262,7 +253,7 @@ function formatCommentTime(value: string): string {
       </button>
     </div>
 
-    <p v-if="commentError" class="state-line" :class="{ 'error-line': !commentError.includes('已发送') && !commentError.includes('已重置') }">
+    <p v-if="commentError" class="state-line error-line">
       {{ commentError }}
     </p>
 
@@ -300,7 +291,7 @@ function formatCommentTime(value: string): string {
             <p class="section-kicker">账号</p>
             <h3>{{ authTitle }}</h3>
           </div>
-          <button type="button" @click="closeAuthPanel">关闭</button>
+          <button data-test="close-auth-panel" type="button" @click="closeAuthPanel">关闭</button>
         </div>
 
         <label class="visitor-field">
@@ -324,7 +315,8 @@ function formatCommentTime(value: string): string {
           <div class="visitor-code-row">
             <input v-model="authForm.code" autocomplete="one-time-code" />
             <button
-              data-test="send-visitor-code"
+              class="visitor-send-code"
+              data-test="send-code"
               type="button"
               :disabled="codeSending || codeCountdown > 0"
               @click="sendCode"
@@ -333,6 +325,9 @@ function formatCommentTime(value: string): string {
             </button>
           </div>
         </label>
+
+        <p v-if="authNotice" class="state-line auth-notice" role="status">{{ authNotice }}</p>
+        <p v-if="authError" class="state-line error-line" role="alert">{{ authError }}</p>
 
         <button class="primary-button visitor-submit" type="button" :disabled="authLoading" @click="submitAuth">
           {{ authSubmitLabel }}
@@ -368,3 +363,9 @@ function formatCommentTime(value: string): string {
     </div>
   </section>
 </template>
+
+<style scoped>
+.visitor-send-code {
+  min-width: 7.5rem;
+}
+</style>

@@ -4,6 +4,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, ref } from 'vue'
 
 import OrbitPagination from '../../components/common/OrbitPagination.vue'
+import { getFriendlyErrorMessage } from '../../utils/apiError'
 
 import {
   deleteAdminComment,
@@ -28,8 +29,8 @@ async function loadComments() {
     const result = await getAdminComments({ page: page.value, pageSize: pageSize.value })
     comments.value = result.list
     total.value = result.total
-  } catch {
-    ElMessage.error('评论列表加载失败')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '评论列表加载失败'))
   } finally {
     loading.value = false
   }
@@ -42,8 +43,8 @@ async function toggleComment(comment: AdminComment) {
     await updateAdminComment(comment.id, nextStatus)
     ElMessage.success(nextStatus === 'approved' ? '评论已显示' : '评论已隐藏')
     await loadComments()
-  } catch {
-    ElMessage.error('评论状态更新失败')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '评论状态更新失败'))
   }
 }
 
@@ -57,9 +58,9 @@ async function removeComment(comment: AdminComment) {
     await deleteAdminComment(comment.id)
     ElMessage.success('评论已删除')
     await loadComments()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+  } catch (reason) {
+    if (reason !== 'cancel') {
+      ElMessage.error(getFriendlyErrorMessage(reason, '删除评论失败'))
     }
   }
 }

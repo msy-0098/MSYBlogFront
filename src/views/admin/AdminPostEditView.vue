@@ -5,6 +5,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import PostEditor from '../../components/admin/PostEditor.vue'
+import { getFriendlyErrorMessage } from '../../utils/apiError'
 import {
   createAdminPost,
   getAdminCategories,
@@ -54,8 +55,8 @@ async function loadEditor() {
     } else {
       post.value = emptyPost()
     }
-  } catch {
-    ElMessage.error('编辑数据加载失败')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '编辑数据加载失败'))
   } finally {
     loading.value = false
   }
@@ -79,8 +80,8 @@ async function savePost(payload: AdminPostPayload) {
     }
 
     router.push('/admin/posts')
-  } catch {
-    ElMessage.error('保存失败，请检查标题、Slug 或分类')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '保存失败，请检查标题、Slug 或分类'))
   } finally {
     saving.value = false
   }

@@ -5,6 +5,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import OrbitPagination from '../../components/common/OrbitPagination.vue'
+import { getFriendlyErrorMessage } from '../../utils/apiError'
 
 import {
   deleteAdminPost,
@@ -41,8 +42,8 @@ async function loadPosts() {
     const result = await getAdminPosts({ page: page.value, pageSize: pageSize.value })
     posts.value = result.list
     total.value = result.total
-  } catch {
-    ElMessage.error('文章列表加载失败')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '文章列表加载失败'))
   } finally {
     loading.value = false
   }
@@ -58,9 +59,9 @@ async function removePost(post: AdminPost) {
     await deleteAdminPost(post.id)
     ElMessage.success('文章已删除')
     await loadPosts()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+  } catch (reason) {
+    if (reason !== 'cancel') {
+      ElMessage.error(getFriendlyErrorMessage(reason, '删除文章失败'))
     }
   }
 }

@@ -46,7 +46,7 @@ vi.mock('../api/blog', () => ({
     pageSize: 1,
     total: 1
   }),
-  sendVisitorEmailCode: vi.fn().mockResolvedValue({ sent: true }),
+  sendVisitorEmailCode: vi.fn().mockResolvedValue({ sent: true, cooldownSeconds: 60, expiresIn: 300 }),
   registerVisitor: vi.fn(),
   loginVisitor: vi.fn(),
   createPostComment: vi.fn()
@@ -103,7 +103,7 @@ describe('PostDetailView', () => {
     await wrapper.find('[data-test="open-comment-auth"]').trigger('click')
     await wrapper.find('[data-test="visitor-email"]').setValue('new-reader@example.com')
     
-    const sendBtn = wrapper.find('[data-test="send-visitor-code"]')
+    const sendBtn = wrapper.find('[data-test="send-code"]')
     expect(sendBtn.text()).toBe('发送验证码')
 
     await sendBtn.trigger('click')

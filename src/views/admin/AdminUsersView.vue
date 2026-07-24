@@ -3,6 +3,7 @@ import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
 
 import { getAdminProfile, getAdminUsers, type AdminUser, type AdminVisitor } from '../../api/admin'
+import { getFriendlyErrorMessage } from '../../utils/apiError'
 
 const loading = ref(false)
 const profile = ref<AdminUser | null>(null)
@@ -18,8 +19,8 @@ async function loadUsers() {
     profile.value = current
     users.value = result.list
     total.value = result.total
-  } catch {
-    ElMessage.error('用户信息加载失败')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '用户信息加载失败'))
   } finally {
     loading.value = false
   }

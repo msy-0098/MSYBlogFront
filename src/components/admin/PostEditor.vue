@@ -9,6 +9,7 @@ import {
   beautifyAdminPost,
   uploadAdminImage
 } from '../../api/admin'
+import { getFriendlyErrorMessage } from '../../utils/apiError'
 
 const props = withDefaults(
   defineProps<{
@@ -97,8 +98,8 @@ async function beautifyContent() {
     form.summary = result.summary
     form.content = result.content
     ElMessage.success('DeepSeek 润色完成啦')
-  } catch {
-    ElMessage.error('DeepSeek 暂时不可用，请检查服务端配置')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, 'DeepSeek 暂时不可用，请检查服务端配置'))
   } finally {
     beautifying.value = false
   }
@@ -117,8 +118,8 @@ async function uploadCover(event: Event) {
     const result = await uploadAdminImage(file)
     form.cover = result.path
     ElMessage.success('封面已上传')
-  } catch {
-    ElMessage.error('上传失败，请选择 5MB 内的图片')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '上传失败，请选择 5MB 内的图片'))
   } finally {
     form.uploadingCover = false
     input.value = ''

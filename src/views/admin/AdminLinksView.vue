@@ -11,6 +11,7 @@ import {
   type AdminFriendLink,
   type AdminFriendLinkPayload
 } from '../../api/admin'
+import { getFriendlyErrorMessage } from '../../utils/apiError'
 
 const links = ref<AdminFriendLink[]>([])
 const loading = ref(false)
@@ -33,8 +34,8 @@ async function loadLinks() {
   loading.value = true
   try {
     links.value = await getAdminLinks()
-  } catch {
-    ElMessage.error('友链列表加载失败')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '友链列表加载失败'))
   } finally {
     loading.value = false
   }
@@ -84,8 +85,8 @@ async function saveLink() {
     }
     closeDialog()
     await loadLinks()
-  } catch {
-    ElMessage.error('保存失败，请检查名称和链接')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '保存失败，请检查名称和链接'))
   } finally {
     saving.value = false
   }
@@ -97,8 +98,10 @@ async function removeLink(link: AdminFriendLink) {
     await deleteAdminLink(link.id)
     ElMessage.success('已删除')
     await loadLinks()
-  } catch {
-    // cancelled or failed
+  } catch (reason) {
+    if (reason !== 'cancel') {
+      ElMessage.error(getFriendlyErrorMessage(reason, '删除友链失败'))
+    }
   }
 }
 </script>

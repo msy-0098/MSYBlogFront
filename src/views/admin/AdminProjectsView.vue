@@ -11,6 +11,7 @@ import {
   type AdminProject,
   type AdminProjectPayload
 } from '../../api/admin'
+import { getFriendlyErrorMessage } from '../../utils/apiError'
 
 const projects = ref<AdminProject[]>([])
 const loading = ref(false)
@@ -35,8 +36,8 @@ async function loadProjects() {
 
   try {
     projects.value = await getAdminProjects()
-  } catch {
-    ElMessage.error('项目列表加载失败')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '项目列表加载失败'))
   } finally {
     loading.value = false
   }
@@ -102,8 +103,8 @@ async function saveProject() {
 
     closeDialog()
     await loadProjects()
-  } catch {
-    ElMessage.error('保存失败，请检查项目名称')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '保存失败，请检查项目名称'))
   } finally {
     saving.value = false
   }
@@ -119,9 +120,9 @@ async function removeProject(project: AdminProject) {
     await deleteAdminProject(project.id)
     ElMessage.success('项目已删除')
     await loadProjects()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+  } catch (reason) {
+    if (reason !== 'cancel') {
+      ElMessage.error(getFriendlyErrorMessage(reason, '删除项目失败'))
     }
   }
 }

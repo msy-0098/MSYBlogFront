@@ -14,6 +14,7 @@ import {
   updateAdminTag,
   type AdminTaxonomy
 } from '../../api/admin'
+import { getFriendlyErrorMessage } from '../../utils/apiError'
 
 const props = defineProps<{
   mode: 'categories' | 'tags'
@@ -59,8 +60,8 @@ async function loadItems() {
 
   try {
     items.value = props.mode === 'categories' ? await getAdminCategories() : await getAdminTags()
-  } catch {
-    ElMessage.error(`${copy.value.itemName}加载失败`)
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, `${copy.value.itemName}加载失败`))
   } finally {
     loading.value = false
   }
@@ -114,8 +115,8 @@ async function saveItem() {
 
     closeDialog()
     await loadItems()
-  } catch {
-    ElMessage.error('保存失败，请检查名称或 Slug')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '保存失败，请检查名称或 Slug'))
   } finally {
     saving.value = false
   }
@@ -137,9 +138,9 @@ async function removeItem(item: AdminTaxonomy) {
 
     ElMessage.success(`${copy.value.itemName}已删除`)
     await loadItems()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error(props.mode === 'categories' ? '删除失败，可能仍有关联文章' : '删除失败')
+  } catch (reason) {
+    if (reason !== 'cancel') {
+      ElMessage.error(getFriendlyErrorMessage(reason, props.mode === 'categories' ? '删除失败，可能仍有关联文章' : '删除失败'))
     }
   }
 }

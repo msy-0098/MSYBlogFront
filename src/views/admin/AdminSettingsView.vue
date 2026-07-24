@@ -9,6 +9,7 @@ import {
   updateAdminSettings,
   type AdminSettings
 } from '../../api/admin'
+import { getFriendlyErrorMessage } from '../../utils/apiError'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -44,8 +45,8 @@ async function loadSettings() {
 
   try {
     Object.assign(form, await getAdminSettings())
-  } catch {
-    ElMessage.error('站点设置加载失败')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '站点设置加载失败'))
   } finally {
     loading.value = false
   }
@@ -57,8 +58,8 @@ async function saveSettings() {
   try {
     await updateAdminSettings({ ...form })
     ElMessage.success('站点设置已保存')
-  } catch {
-    ElMessage.error('保存失败')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '站点设置保存失败'))
   } finally {
     saving.value = false
   }
@@ -84,17 +85,8 @@ async function savePassword() {
     passwordForm.newPassword = ''
     passwordForm.confirmPassword = ''
     ElMessage.success('密码已更新')
-  } catch (error: unknown) {
-    const axiosMessage =
-      typeof error === 'object' &&
-      error !== null &&
-      'response' in error &&
-      typeof (error as { response?: { data?: { message?: string } } }).response?.data?.message === 'string'
-        ? (error as { response: { data: { message: string } } }).response.data.message
-        : error instanceof Error
-          ? error.message
-          : '修改密码失败'
-    ElMessage.error(axiosMessage || '修改密码失败')
+  } catch (reason) {
+    ElMessage.error(getFriendlyErrorMessage(reason, '修改密码失败'))
   } finally {
     changingPassword.value = false
   }

@@ -3,6 +3,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, ref } from 'vue'
 
 import { createAdminBan, getAdminAnalytics, removeAdminBan, type AdminAnalytics, type AdminIPBan } from '../../api/admin'
+import { getFriendlyErrorMessage } from '../../utils/apiError'
 
 const loading = ref(false)
 const analytics = ref<AdminAnalytics | null>(null)
@@ -13,7 +14,7 @@ onMounted(load)
 
 async function load() {
   loading.value = true
-  try { analytics.value = await getAdminAnalytics() } catch { ElMessage.error('访问分析加载失败') } finally { loading.value = false }
+  try { analytics.value = await getAdminAnalytics() } catch (reason) { ElMessage.error(getFriendlyErrorMessage(reason, '访问分析加载失败')) } finally { loading.value = false }
 }
 
 async function banIP() {
@@ -24,12 +25,12 @@ async function banIP() {
     ip.value = ''
     ElMessage.success('IP 已封禁 24 小时')
     await load()
-  } catch { ElMessage.error('封禁失败') }
+  } catch (reason) { ElMessage.error(getFriendlyErrorMessage(reason, '封禁失败')) }
 }
 
 async function unban(ban: AdminIPBan) {
   await ElMessageBox.confirm(`确认解除 ${ban.ip} 的封禁吗？`, '解除封禁', { type: 'warning' })
-  try { await removeAdminBan(ban.id); ElMessage.success('已解除封禁'); await load() } catch { ElMessage.error('解除失败') }
+  try { await removeAdminBan(ban.id); ElMessage.success('已解除封禁'); await load() } catch (reason) { ElMessage.error(getFriendlyErrorMessage(reason, '解除封禁失败')) }
 }
 </script>
 

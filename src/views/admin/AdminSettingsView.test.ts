@@ -1,5 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import ElementPlus from 'element-plus'
+import ElementPlus, { ElMessage } from 'element-plus'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import AdminSettingsView from './AdminSettingsView.vue'
@@ -31,6 +31,7 @@ describe('AdminSettingsView', () => {
     getAdminSettings.mockReset()
     updateAdminSettings.mockReset()
     changeAdminPassword.mockReset()
+    vi.mocked(ElMessage.error).mockReset()
   })
 
   it('edits and saves navigation items', async () => {
@@ -130,6 +131,21 @@ describe('AdminSettingsView', () => {
       currentPassword: 'old-password',
       newPassword: 'new-password'
     })
+  })
+
+  it('shows a normalized friendly message when saving settings fails', async () => {
+    getAdminSettings.mockResolvedValue({
+      siteTitle: 'Blog', subtitle: 'Notes', owner: 'Admin', domain: 'example.com', description: 'Personal site',
+      github: '', gitee: '', email: '', icp: '', navItems: 'Home,Posts'
+    })
+    updateAdminSettings.mockRejectedValue({ response: { status: 500, data: { code: 500 } } })
+
+    const wrapper = mount(AdminSettingsView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+    await wrapper.find('[data-test="settings-save-button"]').trigger('click')
+    await flushPromises()
+
+    expect(ElMessage.error).toHaveBeenCalledWith('服务暂时不可用，请稍后再试')
   })
 
   it('shows discovery links for rss sitemap and robots', async () => {
