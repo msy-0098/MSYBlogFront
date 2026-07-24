@@ -1,6 +1,7 @@
 import type { AxiosAdapter } from 'axios'
 import { describe, expect, it } from 'vitest'
 
+import { useVerificationCountdown } from '../composables/useVerificationCountdown'
 import { createApiClient } from './site'
 import type { EmailCodeResult } from './blog'
 import {
@@ -195,6 +196,25 @@ describe('blog api', () => {
       code: 401,
       message: '邮箱或密码错误'
     })
+  })
+
+  it('does not start a verification cooldown when an email-code request fails', async () => {
+    const key = 'email-code-cooldown:register:reader@example.com'
+    sessionStorage.removeItem(key)
+    const countdown = useVerificationCountdown()
+    const client = createApiClient({
+      adapter: async () => {
+        throw new Error('network unavailable')
+      }
+    })
+
+    await expect(sendVisitorEmailCode('reader@example.com', 'register', client)).rejects.toMatchObject({
+      name: 'FriendlyApiError'
+    })
+    expect(countdown.remaining('reader@example.com', 'register').value).toBe(0)
+    expect(sessionStorage.getItem(key)).toBeNull()
+
+    countdown.dispose()
   })
 })
 

@@ -1,4 +1,4 @@
-import { nextTick } from 'vue'
+import { effectScope, nextTick, type EffectScope } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useVerificationCountdown } from './useVerificationCountdown'
@@ -10,6 +10,8 @@ describe('useVerificationCountdown', () => {
   })
 
   afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
     vi.useRealTimers()
     sessionStorage.clear()
   })
@@ -35,6 +37,17 @@ describe('useVerificationCountdown', () => {
 
     expect(countdown.remaining('reader@example.com', 'register').value).toBe(30)
     expect(countdown.remaining('reader@example.com', 'reset').value).toBe(10)
+
+    countdown.dispose()
+  })
+
+  it('keeps different normalized email addresses isolated', () => {
+    const countdown = useVerificationCountdown()
+    countdown.start('first@example.com', 'register', 30)
+    countdown.start('second@example.com', 'register', 10)
+
+    expect(countdown.remaining(' FIRST@example.com ', 'register').value).toBe(30)
+    expect(countdown.remaining('second@example.com', 'register').value).toBe(10)
 
     countdown.dispose()
   })
@@ -67,6 +80,23 @@ describe('useVerificationCountdown', () => {
     expect(sessionStorage.getItem('email-code-cooldown:register:reader@example.com')).toBeTypeOf('string')
   })
 
+  it('stops its interval automatically when the owning effect scope is disposed', () => {
+    const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval')
+    let countdown: ReturnType<typeof useVerificationCountdown> | undefined
+    let scope: EffectScope | undefined
+
+    scope = effectScope()
+    scope.run(() => {
+      countdown = useVerificationCountdown()
+      countdown.start('reader@example.com', 'register', 30)
+    })
+
+    scope.stop()
+    expect(clearIntervalSpy).toHaveBeenCalledTimes(1)
+    expect(sessionStorage.getItem('email-code-cooldown:register:reader@example.com')).toBeTypeOf('string')
+    countdown?.dispose()
+  })
+
   it('ignores invalid cooldown values and clears invalid persisted values', () => {
     sessionStorage.setItem('email-code-cooldown:register:reader@example.com', 'not-a-timestamp')
     const countdown = useVerificationCountdown()
@@ -79,6 +109,41 @@ describe('useVerificationCountdown', () => {
     expect(countdown.remaining('reader@example.com', 'register').value).toBe(0)
 
     countdown.dispose()
+  })
+
+  it('clears empty persisted cooldown values instead of treating them as absent', () => {
+    const key = 'email-code-cooldown:register:reader@example.com'
+    sessionStorage.setItem(key, '')
+    const countdown = useVerificationCountdown()
+
+    expect(countdown.remaining('reader@example.com', 'register').value).toBe(0)
+    expect(sessionStorage.getItem(key)).toBeNull()
+
+    countdown.dispose()
+  })
+
+  it('uses an in-memory fallback when sessionStorage is unavailable', () => {
+    vi.stubGlobal('sessionStorage', undefined)
+    const first = useVerificationCountdown()
+    first.start('memory@example.com', 'register', 20)
+
+    const restored = useVerificationCountdown()
+    expect(restored.remaining('memory@example.com', 'register').value).toBe(20)
+
+    first.dispose()
+    restored.dispose()
+  })
+
+  it('accepts and restores cooldowns longer than one day', () => {
+    const first = useVerificationCountdown()
+    first.start('long@example.com', 'register', 86401)
+
+    expect(first.remaining('long@example.com', 'register').value).toBe(86401)
+    const restored = useVerificationCountdown()
+    expect(restored.remaining('long@example.com', 'register').value).toBe(86401)
+
+    first.dispose()
+    restored.dispose()
   })
 
   it('only extends an existing cooldown when retryAfter is later', () => {

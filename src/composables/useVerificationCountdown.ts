@@ -3,7 +3,6 @@ import { getCurrentScope, onScopeDispose, ref, type Ref } from 'vue'
 export type VerificationPurpose = 'register' | 'reset'
 
 const storagePrefix = 'email-code-cooldown'
-const maxCooldownSeconds = 24 * 60 * 60
 const memoryCooldowns = new Map<string, string>()
 
 export interface VerificationCountdown {
@@ -85,12 +84,12 @@ function getCooldownKey(email: string, purpose: VerificationPurpose) {
 }
 
 function isValidCooldown(seconds: number) {
-  return Number.isFinite(seconds) && seconds > 0 && seconds <= maxCooldownSeconds
+  return Number.isFinite(seconds) && seconds > 0
 }
 
 function readExpiresAt(key: string, now = Date.now()) {
   const value = readStoredValue(key)
-  if (!value) return null
+  if (value === null) return null
 
   const expiresAt = Number(value)
   if (!Number.isFinite(expiresAt) || expiresAt <= now) {
